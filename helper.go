@@ -1,11 +1,6 @@
 package wizard
 
-import (
-	"github.com/evalphobia/go-log-wrapper/log"
-)
-
-var _ = log.Nothing
-
+// UseMaster returns db master
 func (w *Wizard) UseMaster(obj interface{}) interface{} {
 	cluster := w.Select(obj)
 	if cluster == nil {
@@ -18,6 +13,7 @@ func (w *Wizard) UseMaster(obj interface{}) interface{} {
 	return db.DB()
 }
 
+// UseMasters returns all db master instances for sharding
 func (w *Wizard) UseMasters(obj interface{}) []interface{} {
 	c, ok := w.clusters[NormalizeValue(obj)]
 	if !ok {
@@ -34,6 +30,8 @@ func (w *Wizard) UseMasters(obj interface{}) []interface{} {
 	return results
 }
 
+// UseSlave randomly returns db slave from the slaves
+// if any slave is not set, master is returned
 func (w *Wizard) UseSlave(obj interface{}) interface{} {
 	cluster := w.Select(obj)
 	if cluster == nil {
@@ -46,6 +44,7 @@ func (w *Wizard) UseSlave(obj interface{}) interface{} {
 	return db.DB()
 }
 
+// UseMasterBySlot returns db master for sharding by hash slot id
 func (w *Wizard) UseMasterBySlot(obj interface{}, id int64) interface{} {
 	cluster := w.SelectBySlot(obj, id)
 	if cluster == nil {
@@ -58,6 +57,8 @@ func (w *Wizard) UseMasterBySlot(obj interface{}, id int64) interface{} {
 	return db.DB()
 }
 
+// UseSlaveBySlot randomly returns db slave for sharding by hash slot id
+// if any slave is not set in the cluster, master is returned
 func (w *Wizard) UseSlaveBySlot(obj interface{}, id int64) interface{} {
 	cluster := w.SelectBySlot(obj, id)
 	if cluster == nil {

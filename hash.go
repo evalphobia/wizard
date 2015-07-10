@@ -8,6 +8,7 @@ import (
 
 var hashTable = crc64.MakeTable(crc64.ISO)
 
+// getInt64 returns int64 value
 func getInt64(v interface{}) int64 {
 	switch t := v.(type) {
 	case int64:
@@ -38,6 +39,7 @@ func getInt64(v interface{}) int64 {
 	return hashToInt64(v)
 }
 
+// hashToInt64 converts any value to int64 using crc64
 func hashToInt64(v interface{}) int64 {
 	str := fmt.Sprint(v)
 	h := crc64.New(hashTable)

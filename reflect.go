@@ -5,9 +5,12 @@ import (
 	"strings"
 )
 
+// used for shard key in the tag name of struct
 const TagName = "shard_key"
 
-// ToValue pointer to not pointer value
+// NormalizeValue returns value
+// if struct is passed, returns name of the struct
+// if pointer is passed, returns non-pointer value
 func NormalizeValue(p interface{}) interface{} {
 	v := toValue(p)
 	if v.Kind() == reflect.Struct {
