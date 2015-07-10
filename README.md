@@ -1,3 +1,7 @@
+[![Build Status](https://drone.io/github.com/evalphobia/wizard/status.png)](https://drone.io/github.com/evalphobia/wizard/latest)
+
+[![Coverage Status](https://coveralls.io/repos/evalphobia/wizard/badge.svg?branch=master&service=github)](https://coveralls.io/github/evalphobia/wizard?branch=master)
+
 # Wizard
 
 Wizard is database/sql management library for multi instance and sharding in golang.  
