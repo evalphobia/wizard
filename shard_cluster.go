@@ -43,7 +43,7 @@ func (c ShardCluster) SelectBySlot(i int64) *StandardCluster {
 	return nil
 }
 
-// RegisterShard adds cluster with hash slot range(min and max) 
+// RegisterShard adds cluster with hash slot range(min and max)
 func (c *ShardCluster) RegisterShard(min, max int64, s *StandardCluster) error {
 	err := c.checkOverlapped(min, max)
 	if err != nil {

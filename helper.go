@@ -15,8 +15,8 @@ func (w *Wizard) UseMaster(obj interface{}) interface{} {
 
 // UseMasters returns all db master instances for sharding
 func (w *Wizard) UseMasters(obj interface{}) []interface{} {
-	c, ok := w.clusters[NormalizeValue(obj)]
-	if !ok {
+	c := w.getCluster(obj)
+	if c == nil {
 		return nil
 	}
 	var results []interface{}

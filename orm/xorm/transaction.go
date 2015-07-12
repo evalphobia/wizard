@@ -54,7 +54,7 @@ func (x *Xorm) Rollback(obj interface{}) error {
 
 func (x *Xorm) GetOrCreateSession(obj interface{}) (Session, error) {
 	if x.InLazyTx(obj) {
-		return x.LazyBegin(obj)
+		return x.LazyBeginOne(obj)
 	}
 	db := x.UseMaster(obj)
 	if db == nil {
@@ -99,7 +99,7 @@ func (x *Xorm) deleteSession(db interface{}) {
 	delete(x.sessions, db)
 }
 
-func (x *Xorm) LazyTxStart(obj interface{}) {
+func (x *Xorm) LazyBegin(obj interface{}) {
 	dbs := x.UseMasters(obj)
 	if len(dbs) == 0 {
 		return
@@ -111,7 +111,7 @@ func (x *Xorm) InLazyTx(obj interface{}) bool {
 	return x.lazy.inLazyTx(NormalizeValue(obj))
 }
 
-func (x *Xorm) LazyBegin(obj interface{}) (Session, error) {
+func (x *Xorm) LazyBeginOne(obj interface{}) (Session, error) {
 	n := NormalizeValue(obj)
 	dbs := x.UseMasters(obj)
 	if len(dbs) == 0 {

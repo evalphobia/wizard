@@ -6,6 +6,7 @@ import (
 	"github.com/evalphobia/wizard/errors"
 )
 
+// LazySessionList enables lazy transation
 type LazySessionList struct {
 	list map[interface{}]*LazySessions
 	inTx map[interface{}]bool
@@ -61,6 +62,7 @@ func (l *LazySessionList) RollbackAll(name interface{}) error {
 	return err
 }
 
+// LazySessions
 type LazySessions struct {
 	sessions map[interface{}]Session
 }

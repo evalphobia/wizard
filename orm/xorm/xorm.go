@@ -8,16 +8,16 @@ import (
 )
 
 type Xorm struct {
-	c *wizard.Wizard
+	c        *wizard.Wizard
 	sessions map[interface{}]Session
-	lazy *LazySessionList
+	lazy     *LazySessionList
 }
 
 func New(c *wizard.Wizard) *Xorm {
 	return &Xorm{
-		c: c,
+		c:        c,
 		sessions: make(map[interface{}]Session),
-		lazy: newLazySessionList(),
+		lazy:     newLazySessionList(),
 	}
 }
 
@@ -32,7 +32,7 @@ func (x *Xorm) UseMaster(obj interface{}) *xorm.Engine {
 func (x *Xorm) UseMasters(obj interface{}) []*xorm.Engine {
 	var results []*xorm.Engine
 	for _, db := range x.c.UseMasters(obj) {
-		e, ok := db.(*xorm.Engine) 
+		e, ok := db.(*xorm.Engine)
 		if !ok {
 			continue
 		}
@@ -65,7 +65,7 @@ func (x *Xorm) Find(obj interface{}, fn func(Session) error) error {
 	return fn(db.NewSession())
 }
 
-func (x *Xorm) Count(obj interface{}, fn func(Session) (int, error)) (int, error) {
+func (x *Xorm) Count(obj interface{}, fn func(Session) (int64, error)) (int64, error) {
 	db := x.UseSlave(obj)
 	if db == nil {
 		return 0, errors.NewErrNilDB(NormalizeValue(obj))
@@ -81,10 +81,10 @@ func (x *Xorm) Insert(obj interface{}, fn func(Session) (int64, error)) (int64, 
 	return fn(s)
 }
 
-func (x *Xorm) Update(obj interface{}, fn func(Session) (bool, error)) (bool, error) {
+func (x *Xorm) Update(obj interface{}, fn func(Session) (int64, error)) (int64, error) {
 	s, err := x.GetOrCreateSession(obj)
 	if err != nil {
-		return false, err
+		return 0, err
 	}
 	return fn(s)
 }
@@ -105,7 +105,7 @@ func (x *Xorm) FindUsingMaster(obj interface{}, fn func(Session) error) error {
 	return fn(s)
 }
 
-func (x *Xorm) CountUsingMaster(obj interface{}, fn func(Session) (int, error)) (int, error) {
+func (x *Xorm) CountUsingMaster(obj interface{}, fn func(Session) (int64, error)) (int64, error) {
 	s, err := x.GetOrCreateSession(obj)
 	if err != nil {
 		return 0, err
