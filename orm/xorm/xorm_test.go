@@ -25,10 +25,14 @@ func init() {
 
 func initTestDB() {
 	testInitializeEngines()
-	time.Sleep(100 * time.Millisecond)
+	testWaitForIO()
 	testInitializeSchema()
-	time.Sleep(100 * time.Millisecond)
+	testWaitForIO()
 	testInitializeData()
+	testWaitForIO()
+}
+
+func testWaitForIO() {
 	time.Sleep(100 * time.Millisecond)
 }
 
@@ -312,6 +316,8 @@ func TestInsert(t *testing.T) {
 	orm.Get(row, getFn)
 	assert.Equal("Daniel", row.(*testUser).Name)
 
+	testWaitForIO()
+
 	// user B
 	assert.EqualValues(3, countFn(testUser{ID: 500}, &testUser{}))
 	row = &testUser{ID: 1500, Name: "Dorothy"}
@@ -323,6 +329,8 @@ func TestInsert(t *testing.T) {
 	row = &testUser{ID: 1500}
 	orm.Get(row, getFn)
 	assert.Equal("Dorothy", row.(*testUser).Name)
+
+	testWaitForIO()
 
 	// foobar
 	assert.EqualValues(3, countFn(testFoobar{}, &testFoobar{}))
@@ -336,6 +344,8 @@ func TestInsert(t *testing.T) {
 	orm.Get(row, getFn)
 	assert.Equal("foobar#4", row.(*testFoobar).Name)
 
+	testWaitForIO()
+
 	// other
 	assert.EqualValues(3, countFn(testCompany{}, &testCompany{}))
 	row = &testCompany{ID: 4, Name: "Delta Air Lines"}
@@ -347,6 +357,8 @@ func TestInsert(t *testing.T) {
 	row = &testCompany{ID: 4}
 	orm.Get(row, getFn)
 	assert.Equal("Delta Air Lines", row.(*testCompany).Name)
+
+	testWaitForIO()
 
 	// multiple rows
 	assert.EqualValues(4, countFn(testCompany{}, &testCompany{}))
@@ -361,6 +373,8 @@ func TestInsert(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal(int64(3), affected)
 	assert.EqualValues(7, countFn(testCompany{}, &testCompany{}))
+
+	testWaitForIO()
 
 	initTestDB()
 }
