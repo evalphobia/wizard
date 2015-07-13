@@ -127,14 +127,14 @@ func ExampleLazyTransaction() {
 		return s.Insert(user1)
 	})
 	if err != nil {
-		orm.LazyAbort(User{})
+		orm.LazyRollback(User{})
 		return
 	}
 	_, err = orm.Insert(user2, func(s Session) (int64, error) {
 		return s.Insert(user2)
 	})
 	if err != nil {
-		orm.LazyAbort(User{})
+		orm.LazyRollback(User{})
 		return
 	}
 	orm.LazyCommit(User{})

@@ -62,7 +62,7 @@ func (l *LazySessionList) RollbackAll(name interface{}) error {
 	return err
 }
 
-// LazySessions
+// LazySessions contains sessions for each tables
 type LazySessions struct {
 	sessions map[interface{}]Session
 }
@@ -73,10 +73,12 @@ func newLazySessions() *LazySessions {
 	}
 }
 
+// getOrNewSession returns saved session for the db
+// if no session exists, create new session with transaction and return it
 func (ls *LazySessions) getOrNewSession(db *xorm.Engine) (Session, error) {
 	s := ls.sessions[db]
 	if s != nil {
-		return s, errors.NewErrDuplicateTx()
+		return s, nil
 	}
 	s = db.NewSession()
 	err := s.Begin()
@@ -87,6 +89,7 @@ func (ls *LazySessions) getOrNewSession(db *xorm.Engine) (Session, error) {
 	return s, nil
 }
 
+// CommitAll commits transactions for all of the saved sessions
 func (ls *LazySessions) CommitAll() error {
 	var errs []error
 	for _, s := range ls.sessions {
@@ -96,11 +99,13 @@ func (ls *LazySessions) CommitAll() error {
 		}
 	}
 	if len(errs) == 0 {
+		ls.sessions = make(map[interface{}]Session)
 		return nil
 	}
 	return errors.NewErrCommitAll(errs)
 }
 
+// RollbackAll aborts transactions for all of the saved sessions
 func (ls *LazySessions) RollbackAll() error {
 	var errs []error
 	for _, s := range ls.sessions {
@@ -110,6 +115,7 @@ func (ls *LazySessions) RollbackAll() error {
 		}
 	}
 	if len(errs) == 0 {
+		ls.sessions = make(map[interface{}]Session)
 		return nil
 	}
 	return errors.NewErrCommitAll(errs)

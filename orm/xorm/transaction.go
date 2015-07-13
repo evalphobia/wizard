@@ -4,6 +4,7 @@ import (
 	"github.com/evalphobia/wizard/errors"
 )
 
+// BeginSession returns session with transaction for the db of given object
 func (x *Xorm) BeginSession(obj interface{}) (Session, error) {
 	db := x.UseMaster(obj)
 	if db == nil {
@@ -17,6 +18,7 @@ func (x *Xorm) BeginSession(obj interface{}) (Session, error) {
 	return s, nil
 }
 
+// Begin starts the transaction for the db of given object
 func (x *Xorm) Begin(obj interface{}) error {
 	db := x.UseMaster(obj)
 	if db == nil {
@@ -34,6 +36,7 @@ func (x *Xorm) Begin(obj interface{}) error {
 	return nil
 }
 
+// Commit commits the transaction for the db of given object
 func (x *Xorm) Commit(obj interface{}) error {
 	s, err := x.GetSession(obj)
 	if err != nil {
@@ -43,6 +46,7 @@ func (x *Xorm) Commit(obj interface{}) error {
 	return s.Commit()
 }
 
+// Rollback aborts the transaction for the db of given object
 func (x *Xorm) Rollback(obj interface{}) error {
 	s, err := x.GetSession(obj)
 	if err != nil {
@@ -52,6 +56,8 @@ func (x *Xorm) Rollback(obj interface{}) error {
 	return s.Rollback()
 }
 
+// GetOrCreateSession returns the session for the db of given object
+// if no session exists for the object, create new one and return it
 func (x *Xorm) GetOrCreateSession(obj interface{}) (Session, error) {
 	if x.InLazyTx(obj) {
 		return x.LazyBeginOne(obj)
@@ -67,6 +73,7 @@ func (x *Xorm) GetOrCreateSession(obj interface{}) (Session, error) {
 	return s, nil
 }
 
+// GetSession returns the session for the db of given object
 func (x *Xorm) GetSession(obj interface{}) (Session, error) {
 	db := x.UseMaster(obj)
 	if db == nil {
@@ -79,14 +86,17 @@ func (x *Xorm) GetSession(obj interface{}) (Session, error) {
 	return s, nil
 }
 
+// getSession returns the session for the db
 func (x *Xorm) getSession(db interface{}) Session {
 	return x.sessions[db]
 }
 
+// addSession saves the session for the db
 func (x *Xorm) addSession(db interface{}, s Session) {
 	x.sessions[db] = s
 }
 
+// DeleteSession removes the saved session for the db of given object
 func (x *Xorm) DeleteSession(obj interface{}) {
 	db := x.UseMaster(obj)
 	if db == nil {
@@ -95,10 +105,12 @@ func (x *Xorm) DeleteSession(obj interface{}) {
 	x.deleteSession(db)
 }
 
+// deleteSession removes the saved session for the db
 func (x *Xorm) deleteSession(db interface{}) {
 	delete(x.sessions, db)
 }
 
+// LazyBegin set a transaction flag for the db of given object
 func (x *Xorm) LazyBegin(obj interface{}) {
 	dbs := x.UseMasters(obj)
 	if len(dbs) == 0 {
@@ -107,16 +119,14 @@ func (x *Xorm) LazyBegin(obj interface{}) {
 	x.lazy.prepareTx(NormalizeValue(obj))
 }
 
+// InLazyTx checks if a transaction flag in the db is on or not
 func (x *Xorm) InLazyTx(obj interface{}) bool {
 	return x.lazy.inLazyTx(NormalizeValue(obj))
 }
 
+// LazyBeginOne starts transaction for the db of given object
 func (x *Xorm) LazyBeginOne(obj interface{}) (Session, error) {
 	n := NormalizeValue(obj)
-	dbs := x.UseMasters(obj)
-	if len(dbs) == 0 {
-		return nil, errors.NewErrNilDB(n)
-	}
 	db := x.UseMaster(obj)
 	if db == nil {
 		return nil, errors.NewErrNilDB(n)
@@ -124,6 +134,7 @@ func (x *Xorm) LazyBeginOne(obj interface{}) (Session, error) {
 	return x.lazy.BeginOne(n, db)
 }
 
+// LazyCommit commits all transaction for the db of given object
 func (x *Xorm) LazyCommit(obj interface{}) error {
 	n := NormalizeValue(obj)
 	dbs := x.UseMasters(obj)
@@ -133,7 +144,8 @@ func (x *Xorm) LazyCommit(obj interface{}) error {
 	return x.lazy.CommitAll(n)
 }
 
-func (x *Xorm) LazyAbort(obj interface{}) error {
+// LazyRollback aborts all transaction for the db of given object
+func (x *Xorm) LazyRollback(obj interface{}) error {
 	n := NormalizeValue(obj)
 	dbs := x.UseMasters(obj)
 	if len(dbs) == 0 {

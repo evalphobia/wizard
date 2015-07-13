@@ -10,6 +10,20 @@ func init() {
 	initTestDB()
 }
 
+func countUserMaster(orm *Xorm) int64 {
+	count, _ := orm.CountUsingMaster(&testUser{ID: 1}, func(s Session) (int64, error) {
+		return s.Count(&testUser{})
+	})
+	return count
+}
+
+func countUserMasterB(orm *Xorm) int64 {
+	count, _ := orm.CountUsingMaster(&testUser{ID: 500}, func(s Session) (int64, error) {
+		return s.Count(&testUser{})
+	})
+	return count
+}
+
 func countUserSlave(orm *Xorm) int64 {
 	count, _ := orm.Count(&testUser{ID: 1}, func(s Session) (int64, error) {
 		return s.Count(&testUser{})
@@ -17,8 +31,8 @@ func countUserSlave(orm *Xorm) int64 {
 	return count
 }
 
-func countUserMaster(orm *Xorm) int64 {
-	count, _ := orm.CountUsingMaster(&testUser{ID: 1}, func(s Session) (int64, error) {
+func countUserSlaveB(orm *Xorm) int64 {
+	count, _ := orm.Count(&testUser{ID: 500}, func(s Session) (int64, error) {
 		return s.Count(&testUser{})
 	})
 	return count
@@ -108,5 +122,70 @@ func TestRollback(t *testing.T) {
 	err = orm.Rollback(&testUser{ID: 1})
 	assert.Nil(err)
 	assert.EqualValues(3, countUserMaster(orm))
+	initTestDB()
+}
+
+func TestLazyBegin(t *testing.T) {
+	assert := assert.New(t)
+	wiz := testCreateWizard()
+	orm := New(wiz)
+
+	orm.LazyBegin(&testUser{})
+	assert.EqualValues(3, countUserSlave(orm))
+	assert.EqualValues(3, countUserSlaveB(orm))
+
+	orm.Insert(&testUser{ID: 1}, func(s Session) (int64, error) {
+		return s.Insert(&testUser{ID: 4, Name: "Daniel"})
+	})
+	orm.Insert(&testUser{ID: 500}, func(s Session) (int64, error) {
+		return s.Insert(&testUser{ID: 503, Name: "Dorothy"})
+	})
+
+	assert.EqualValues(3, countUserSlave(orm))
+	assert.EqualValues(3, countUserSlaveB(orm))
+
+	initTestDB()
+}
+
+func TestLazyCommit(t *testing.T) {
+	assert := assert.New(t)
+	wiz := testCreateWizard()
+	orm := New(wiz)
+
+	orm.LazyBegin(&testUser{})
+	orm.Insert(&testUser{ID: 1}, func(s Session) (int64, error) {
+		return s.Insert(&testUser{ID: 4, Name: "Daniel"})
+	})
+	orm.Insert(&testUser{ID: 500}, func(s Session) (int64, error) {
+		return s.Insert(&testUser{ID: 503, Name: "Dorothy"})
+	})
+
+	orm.LazyCommit(&testUser{})
+	assert.EqualValues(4, countUserSlave(orm))
+	assert.EqualValues(4, countUserSlaveB(orm))
+
+	initTestDB()
+}
+
+func TestLazyRollback(t *testing.T) {
+	assert := assert.New(t)
+	wiz := testCreateWizard()
+	orm := New(wiz)
+
+	orm.LazyBegin(&testUser{})
+
+	orm.Insert(&testUser{ID: 1}, func(s Session) (int64, error) {
+		return s.Insert(&testUser{ID: 4, Name: "Daniel"})
+	})
+	orm.Insert(&testUser{ID: 500}, func(s Session) (int64, error) {
+		return s.Insert(&testUser{ID: 503, Name: "Dorothy"})
+	})
+	assert.EqualValues(4, countUserMaster(orm))
+	assert.EqualValues(4, countUserMasterB(orm))
+
+	orm.LazyRollback(&testUser{})
+	assert.EqualValues(3, countUserMaster(orm))
+	assert.EqualValues(3, countUserMasterB(orm))
+
 	initTestDB()
 }

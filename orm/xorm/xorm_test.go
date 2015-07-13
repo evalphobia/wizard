@@ -3,6 +3,7 @@ package xorm
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/evalphobia/wizard"
 	"github.com/go-xorm/xorm"
@@ -24,8 +25,11 @@ func init() {
 
 func initTestDB() {
 	testInitializeEngines()
+	time.Sleep(100 * time.Millisecond)
 	testInitializeSchema()
+	time.Sleep(100 * time.Millisecond)
 	testInitializeData()
+	time.Sleep(100 * time.Millisecond)
 }
 
 func testInitializeEngines() {
