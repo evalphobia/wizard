@@ -25,8 +25,8 @@ func NewErrNilDB(name interface{}) Err {
 	return Err{Code: 10000, Info: "cannot find db, name=" + fmt.Sprint(name)}
 }
 
-func NewErrSlotRange(name interface{}) Err {
-	return Err{Code: 11001, Info: "cannot find db, name=" + fmt.Sprint(name)}
+func NewErrAlreadyRegistared(name interface{}) Err {
+	return Err{Code: 11001, Info: "already registered table name=" + fmt.Sprint(name)}
 }
 
 func NewErrSlotSizeMin(min int64) Err {

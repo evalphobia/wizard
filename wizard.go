@@ -1,5 +1,9 @@
 package wizard
 
+import (
+	"github.com/evalphobia/wizard/errors"
+)
+
 // Cluster is interface for [StandardCluster | ShardCluster]
 type Cluster interface {
 	SelectBySlot(i int64) *StandardCluster
@@ -44,6 +48,15 @@ func (w *Wizard) getCluster(obj interface{}) Cluster {
 	default:
 		return nil
 	}
+}
+
+func (w *Wizard) RegisterTable(obj interface{}, c Cluster) error {
+	v := NormalizeValue(obj)
+	if _, ok := w.clusters[v]; ok {
+		return errors.NewErrAlreadyRegistared(v)
+	}
+	w.clusters[v] = c
+	return nil
 }
 
 // setCluster set the cluster with name mapping
