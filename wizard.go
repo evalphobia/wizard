@@ -6,6 +6,7 @@ type Cluster interface {
 	Master() *Node
 	Masters() []*Node
 	Slave() *Node
+	Slaves() []*Node
 }
 
 // Wizard manages all the database cluster for your app

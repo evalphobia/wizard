@@ -1,8 +1,6 @@
 package xorm
 
 import (
-	"github.com/go-xorm/xorm"
-
 	"github.com/evalphobia/wizard/errors"
 )
 
@@ -32,7 +30,7 @@ func (l *LazySessionList) inLazyTx(name interface{}) bool {
 	return b
 }
 
-func (l *LazySessionList) BeginOne(name interface{}, db *xorm.Engine) (Session, error) {
+func (l *LazySessionList) BeginOne(name interface{}, db Engine) (Session, error) {
 	ls := l.list[name]
 	if ls == nil {
 		return nil, errors.NewErrWrongTx()
@@ -75,7 +73,7 @@ func newLazySessions() *LazySessions {
 
 // getOrNewSession returns saved session for the db
 // if no session exists, create new session with transaction and return it
-func (ls *LazySessions) getOrNewSession(db *xorm.Engine) (Session, error) {
+func (ls *LazySessions) getOrNewSession(db Engine) (Session, error) {
 	s := ls.sessions[db]
 	if s != nil {
 		return s, nil

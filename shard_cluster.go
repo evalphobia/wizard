@@ -32,6 +32,18 @@ func (c ShardCluster) Slave() *Node {
 	return nil
 }
 
+// Masters returns all db masters from the sharded clusters
+func (c ShardCluster) Slaves() []*Node {
+	var result []*Node
+	for _, s := range c.List {
+		if s.set == nil {
+			continue
+		}
+		result = append(result, s.set.Slave())
+	}
+	return result
+}
+
 // SelectBySlot returns sharded cluster by hash slot id
 func (c ShardCluster) SelectBySlot(i int64) *StandardCluster {
 	mod := i % c.slotsize

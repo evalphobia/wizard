@@ -43,6 +43,9 @@ func (x *Xorm) Commit(obj interface{}) error {
 		return err
 	}
 	x.DeleteSession(obj)
+	if x.readOnly {
+		return nil
+	}
 	return s.Commit()
 }
 
@@ -86,6 +89,14 @@ func (x *Xorm) GetSession(obj interface{}) (Session, error) {
 	return s, nil
 }
 
+func (x *Xorm) GetSessionByShardKey(obj interface{}, id int64) (Session, error) {
+	db := x.UseMasterByShardKey(obj, id)
+	if db == nil {
+		return nil, errors.NewErrNilDB(NormalizeValue(obj))
+	}
+	return db.NewSession(), nil
+}
+
 // getSession returns the session for the db
 func (x *Xorm) getSession(db interface{}) Session {
 	return x.sessions[db]
@@ -108,6 +119,23 @@ func (x *Xorm) DeleteSession(obj interface{}) {
 // deleteSession removes the saved session for the db
 func (x *Xorm) deleteSession(db interface{}) {
 	delete(x.sessions, db)
+}
+
+// GetSlaveSession returns the session for the slave db of given object
+func (x *Xorm) GetSlaveSession(obj interface{}) (Session, error) {
+	db := x.UseSlave(obj)
+	if db == nil {
+		return nil, errors.NewErrNilDB(NormalizeValue(obj))
+	}
+	return db.NewSession(), nil
+}
+
+func (x *Xorm) GetSlaveSessionByShardKey(obj interface{}, id int64) (Session, error) {
+	db := x.UseSlaveByShardKey(obj, id)
+	if db == nil {
+		return nil, errors.NewErrNilDB(NormalizeValue(obj))
+	}
+	return db.NewSession(), nil
 }
 
 // LazyBegin set a transaction flag for the db of given object
@@ -140,6 +168,9 @@ func (x *Xorm) LazyCommit(obj interface{}) error {
 	dbs := x.UseMasters(obj)
 	if len(dbs) == 0 {
 		return errors.NewErrNilDB(n)
+	}
+	if x.readOnly {
+		return nil
 	}
 	return x.lazy.CommitAll(n)
 }

@@ -12,10 +12,10 @@ import (
 )
 
 var (
-	dbUser01Master, dbUser01Slave01, dbUser01Slave02 *xorm.Engine // user A
-	dbUser02Master, dbUser02Slave01, dbUser02Slave02 *xorm.Engine // user B
-	dbFoobarMaster, dbFoobarSlave01, dbFoobarSlave02 *xorm.Engine
-	dbOther                                          *xorm.Engine
+	dbUser01Master, dbUser01Slave01, dbUser01Slave02 Engine // user A
+	dbUser02Master, dbUser02Slave01, dbUser02Slave02 Engine // user B
+	dbFoobarMaster, dbFoobarSlave01, dbFoobarSlave02 Engine
+	dbOther                                          Engine
 	wiz                                              *wizard.Wizard
 )
 
@@ -33,7 +33,7 @@ func initTestDB() {
 }
 
 func testWaitForIO() {
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(80 * time.Millisecond)
 }
 
 func testInitializeEngines() {
@@ -130,10 +130,10 @@ func TestUseMasters(t *testing.T) {
 	wiz := testCreateWizard()
 	orm := New(wiz)
 
-	shardMasters := []*xorm.Engine{dbUser01Master, dbUser02Master}
+	shardMasters := []Engine{dbUser01Master, dbUser02Master}
 	assert.Equal(shardMasters, orm.UseMasters(testUser{}))
-	assert.Equal([]*xorm.Engine{dbFoobarMaster}, orm.UseMasters(testFoobar{}))
-	assert.Equal([]*xorm.Engine{dbOther}, orm.UseMasters("xxx"))
+	assert.Equal([]Engine{dbFoobarMaster}, orm.UseMasters(testFoobar{}))
+	assert.Equal([]Engine{dbOther}, orm.UseMasters("xxx"))
 }
 
 func TestUseSlave(t *testing.T) {
@@ -141,7 +141,7 @@ func TestUseSlave(t *testing.T) {
 	wiz := testCreateWizard()
 	orm := New(wiz)
 
-	assert.Contains([]*xorm.Engine{dbFoobarSlave01, dbFoobarSlave02}, orm.UseSlave(testFoobar{}))
+	assert.Contains([]Engine{dbFoobarSlave01, dbFoobarSlave02}, orm.UseSlave(testFoobar{}))
 	assert.Equal(dbOther, orm.UseSlave("xxx"))
 }
 
@@ -304,6 +304,8 @@ func TestInsert(t *testing.T) {
 		return count
 	}
 
+	testWaitForIO()
+
 	// user A
 	assert.EqualValues(3, countFn(testUser{ID: 1}, &testUser{}))
 	row = &testUser{ID: 1000, Name: "Daniel"}
@@ -363,9 +365,9 @@ func TestInsert(t *testing.T) {
 	// multiple rows
 	assert.EqualValues(4, countFn(testCompany{}, &testCompany{}))
 	rows := []*testCompany{
-		&testCompany{ID: 5, Name: "eureka"},
-		&testCompany{ID: 6, Name: "Facebook"},
-		&testCompany{ID: 7, Name: "Google"},
+		{ID: 5, Name: "eureka"},
+		{ID: 6, Name: "Facebook"},
+		{ID: 7, Name: "Google"},
 	}
 	affected, err = orm.Insert(testCompany{}, func(s Session) (int64, error) {
 		return s.Insert(&rows)

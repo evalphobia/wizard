@@ -44,6 +44,22 @@ func (w *Wizard) UseSlave(obj interface{}) interface{} {
 	return db.DB()
 }
 
+func (w *Wizard) UseSlaves(obj interface{}) []interface{} {
+	c := w.getCluster(obj)
+	if c == nil {
+		return nil
+	}
+	var results []interface{}
+	for _, node := range c.Slaves() {
+		db := node.DB()
+		if db == nil {
+			continue
+		}
+		results = append(results, db)
+	}
+	return results
+}
+
 // UseMasterBySlot returns db master for sharding by hash slot id
 func (w *Wizard) UseMasterBySlot(obj interface{}, id int64) interface{} {
 	cluster := w.SelectBySlot(obj, id)

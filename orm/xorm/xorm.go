@@ -1,8 +1,6 @@
 package xorm
 
 import (
-	"github.com/go-xorm/xorm"
-
 	"github.com/evalphobia/wizard"
 	"github.com/evalphobia/wizard/errors"
 )
@@ -12,6 +10,7 @@ type Xorm struct {
 	c        *wizard.Wizard
 	sessions map[interface{}]Session
 	lazy     *LazySessionList
+	readOnly bool
 }
 
 // New creates initialized *Xorm
@@ -23,20 +22,32 @@ func New(c *wizard.Wizard) *Xorm {
 	}
 }
 
+func (x *Xorm) ReadOnly(b bool) {
+	x.readOnly = b
+}
+
 // UseMaster returns master db for the given object
-func (x *Xorm) UseMaster(obj interface{}) *xorm.Engine {
+func (x *Xorm) UseMaster(obj interface{}) Engine {
 	db := x.c.UseMaster(obj)
 	if db == nil {
 		return nil
 	}
-	return db.(*xorm.Engine)
+	return db.(Engine)
+}
+
+func (x *Xorm) UseMasterByShardKey(obj interface{}, id int64) Engine {
+	db := x.c.UseMasterBySlot(obj, id)
+	if db == nil {
+		return nil
+	}
+	return db.(Engine)
 }
 
 // UseMasters returns all of sharded master db for the given object
-func (x *Xorm) UseMasters(obj interface{}) []*xorm.Engine {
-	var results []*xorm.Engine
+func (x *Xorm) UseMasters(obj interface{}) []Engine {
+	var results []Engine
 	for _, db := range x.c.UseMasters(obj) {
-		e, ok := db.(*xorm.Engine)
+		e, ok := db.(Engine)
 		if !ok {
 			continue
 		}
@@ -46,12 +57,32 @@ func (x *Xorm) UseMasters(obj interface{}) []*xorm.Engine {
 }
 
 // UseSlave randomly returns one of the slave db for the given object
-func (x *Xorm) UseSlave(obj interface{}) *xorm.Engine {
+func (x *Xorm) UseSlave(obj interface{}) Engine {
 	db := x.c.UseSlave(obj)
 	if db == nil {
 		return nil
 	}
-	return db.(*xorm.Engine)
+	return db.(Engine)
+}
+
+func (x *Xorm) UseSlaveByShardKey(obj interface{}, id int64) Engine {
+	db := x.c.UseSlaveBySlot(obj, id)
+	if db == nil {
+		return nil
+	}
+	return db.(Engine)
+}
+
+func (x *Xorm) UseSlaves(obj interface{}) []Engine {
+	var results []Engine
+	for _, db := range x.c.UseSlaves(obj) {
+		e, ok := db.(Engine)
+		if !ok {
+			continue
+		}
+		results = append(results, e)
+	}
+	return results
 }
 
 // Get executes xorm.Sessions.Get() in slave db
@@ -83,6 +114,10 @@ func (x *Xorm) Count(obj interface{}, fn func(Session) (int64, error)) (int64, e
 
 // Insert executes xorm.Sessions.Insert() in master db
 func (x *Xorm) Insert(obj interface{}, fn func(Session) (int64, error)) (int64, error) {
+	if x.readOnly {
+		return 0, nil
+	}
+
 	s, err := x.GetOrCreateSession(obj)
 	if err != nil {
 		return 0, err
@@ -92,6 +127,10 @@ func (x *Xorm) Insert(obj interface{}, fn func(Session) (int64, error)) (int64, 
 
 // Update executes xorm.Sessions.Update() in master db
 func (x *Xorm) Update(obj interface{}, fn func(Session) (int64, error)) (int64, error) {
+	if x.readOnly {
+		return 0, nil
+	}
+
 	s, err := x.GetOrCreateSession(obj)
 	if err != nil {
 		return 0, err
