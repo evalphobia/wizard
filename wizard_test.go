@@ -58,7 +58,7 @@ func TestSetCluster(t *testing.T) {
 	assert.Nil(wiz.clusters["table name"])
 
 	c := NewCluster("db")
-	wiz.setCluster("table name", c)
+	wiz.setCluster(c, "table name")
 	assert.Equal(c, wiz.clusters["table name"])
 }
 

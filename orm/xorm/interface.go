@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/go-xorm/xorm"
+	"github.com/go-xorm/core"
 )
 
 // Session is interface for xorm.Session
@@ -73,6 +74,9 @@ type Engine interface {
 	SetDisableGlobalCache(bool)
 	DriverName() string
 	DataSourceName() string
+	SetMapper(core.IMapper)
+	SetTableMapper(core.IMapper)
+	SetColumnMapper(core.IMapper)
 	SupportInsertMany() bool
 	QuoteStr() string
 	Quote(string) string

@@ -50,24 +50,26 @@ func (w *Wizard) getCluster(obj interface{}) Cluster {
 	}
 }
 
-func (w *Wizard) RegisterTable(obj interface{}, c Cluster) error {
-	v := NormalizeValue(obj)
-	if _, ok := w.clusters[v]; ok {
-		return errors.NewErrAlreadyRegistared(v)
+func (w *Wizard) RegisterTables(c Cluster, list ...interface{}) error {
+	for _, obj := range list {
+		v := NormalizeValue(obj)
+		if _, ok := w.clusters[v]; ok {
+			return errors.NewErrAlreadyRegistared(v)
+		}
+		w.clusters[v] = c
 	}
-	w.clusters[v] = c
 	return nil
 }
 
 // setCluster set the cluster with name mapping
-func (w *Wizard) setCluster(obj interface{}, c Cluster) {
+func (w *Wizard) setCluster(c Cluster, obj interface{}) {
 	w.clusters[NormalizeValue(obj)] = c
 }
 
 // CreateCluster set and returns the new StandardCluster
 func (w *Wizard) CreateCluster(obj interface{}, db interface{}) *StandardCluster {
 	c := NewCluster(db)
-	w.setCluster(obj, c)
+	w.setCluster(c, obj)
 	return c
 }
 
@@ -79,7 +81,7 @@ func (w *Wizard) CreateShardCluster(obj interface{}, slot int64) *ShardCluster {
 	c := &ShardCluster{
 		slotsize: slot,
 	}
-	w.setCluster(obj, c)
+	w.setCluster(c, obj)
 	return c
 }
 
