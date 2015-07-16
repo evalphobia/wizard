@@ -60,9 +60,9 @@ func (w *Wizard) UseSlaves(obj interface{}) []interface{} {
 	return results
 }
 
-// UseMasterBySlot returns db master for sharding by hash slot id
-func (w *Wizard) UseMasterBySlot(obj interface{}, id int64) interface{} {
-	cluster := w.SelectBySlot(obj, id)
+// UseMasterByKey returns db master for sharding by shard key
+func (w *Wizard) UseMasterByKey(obj interface{}, key interface{}) interface{} {
+	cluster := w.SelectByKey(obj, key)
 	if cluster == nil {
 		return nil
 	}
@@ -73,10 +73,10 @@ func (w *Wizard) UseMasterBySlot(obj interface{}, id int64) interface{} {
 	return db.DB()
 }
 
-// UseSlaveBySlot randomly returns db slave for sharding by hash slot id
+// UseSlaveByKey randomly returns db slave for sharding by shard key
 // if any slave is not set in the cluster, master is returned
-func (w *Wizard) UseSlaveBySlot(obj interface{}, id int64) interface{} {
-	cluster := w.SelectBySlot(obj, id)
+func (w *Wizard) UseSlaveByKey(obj interface{}, key interface{}) interface{} {
+	cluster := w.SelectByKey(obj, key)
 	if cluster == nil {
 		return nil
 	}

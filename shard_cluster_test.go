@@ -56,7 +56,7 @@ func TestShardClusterSlave(t *testing.T) {
 	assert.Nil(node, "Slave() should be always nil on ShardCluster")
 }
 
-func TestShardClusterSelectBySlot(t *testing.T) {
+func TestShardClusterSelectByKey(t *testing.T) {
 	assert := assert.New(t)
 
 	var s *ShardCluster
@@ -69,17 +69,17 @@ func TestShardClusterSelectBySlot(t *testing.T) {
 	err = s.RegisterShard(1, 1, testCreateCluster("shard02"))
 	assert.Nil(err)
 
-	c = s.SelectBySlot(0)
+	c = s.SelectByKey(0)
 	assert.Equal("shard01-master", c.Master().DB())
-	c = s.SelectBySlot(1)
+	c = s.SelectByKey(1)
 	assert.Equal("shard02-master", c.Master().DB())
-	c = s.SelectBySlot(2)
+	c = s.SelectByKey(2)
 	assert.Equal("shard01-master", c.Master().DB())
-	c = s.SelectBySlot(3)
+	c = s.SelectByKey(3)
 	assert.Equal("shard02-master", c.Master().DB())
-	c = s.SelectBySlot(4)
+	c = s.SelectByKey(4)
 	assert.Equal("shard01-master", c.Master().DB())
-	c = s.SelectBySlot(5)
+	c = s.SelectByKey(5)
 	assert.Equal("shard02-master", c.Master().DB())
 }
 

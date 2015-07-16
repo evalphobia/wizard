@@ -29,7 +29,7 @@ func TestNormalizeValue(t *testing.T) {
 	assert.Equal(valueMap, NormalizeValue(&valueMap))
 }
 
-func TestGetID(t *testing.T) {
+func TestGetShardKey(t *testing.T) {
 	assert := assert.New(t)
 
 	type myStruct1 struct {
@@ -60,10 +60,10 @@ func TestGetID(t *testing.T) {
 	m2 := myStruct2{UserID: 1, CountryID: 2, CityID: 3}
 	m3 := myStruct3{UserID: 1, CountryID: 2, CityID: 3}
 
-	assert.Equal(int64(0), getID(m1), "getID() must return 0 when tag `shard_key:true` is missing")
-	assert.Equal(m2.CountryID, getID(m2))
-	assert.Equal(m3.UserID, getID(m3), "getID() must return 1st field value when multiple tag `shard_key:true` exists")
+	assert.Equal(int64(0), getShardKey(m1), "getShardKey() must return 0 when tag `shard_key:true` is missing")
+	assert.Equal(m2.CountryID, getShardKey(m2))
+	assert.Equal(m3.UserID, getShardKey(m3), "getShardKey() must return 1st field value when multiple tag `shard_key:true` exists")
 
 	adam := personStruct{Name: "Adam Smith", City: "Oxford", Tel: "+81 0120-000-000"}
-	assert.Equal(getInt64("Oxford"), getID(adam))
+	assert.Equal(getInt64("Oxford"), getShardKey(adam))
 }

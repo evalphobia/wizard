@@ -79,15 +79,15 @@ func TestStandardClusterSlave(t *testing.T) {
 	t.Error("Slave() should return different nodes")
 }
 
-func TestStandardClusterSelectBySlot(t *testing.T) {
+func TestStandardClusterSelectByKey(t *testing.T) {
 	assert := assert.New(t)
 
 	var c, c2, c3, c4 *StandardCluster
 
 	c = NewCluster("db")
-	c2 = c.SelectBySlot(0)
-	c3 = c.SelectBySlot(1)
-	c4 = c.SelectBySlot(9999)
+	c2 = c.SelectByKey(0)
+	c3 = c.SelectByKey(1)
+	c4 = c.SelectByKey(9999)
 	assert.Equal(c, c2)
 	assert.Equal(c, c3)
 	assert.Equal(c, c4)

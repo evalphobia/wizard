@@ -143,13 +143,13 @@ func TestSelect(t *testing.T) {
 	assert.Nil(nilTable, "Select() returns nil when table name does not registered")
 }
 
-func TestSelectBySlot(t *testing.T) {
+func TestSelectByKey(t *testing.T) {
 	assert := assert.New(t)
 
 	wiz := NewWizard()
 	c1 := wiz.CreateCluster("standard table", "db-master")
-	c2 := wiz.SelectBySlot("standard table", 1)
-	c3 := wiz.SelectBySlot("standard table", 99)
+	c2 := wiz.SelectByKey("standard table", 1)
+	c3 := wiz.SelectByKey("standard table", 99)
 	assert.Equal(c1, c2)
 	assert.Equal(c1, c3)
 
@@ -163,25 +163,25 @@ func TestSelectBySlot(t *testing.T) {
 	s1.RegisterShard(0, 49, shardSet1)
 	s1.RegisterShard(50, 99, shardSet2)
 
-	assert.Equal(shardSet1, wiz.SelectBySlot(&myStruct{ID: 99}, 1))
-	assert.Equal(shardSet1, wiz.SelectBySlot(&myStruct{ID: 99}, 49))
-	assert.Equal(shardSet2, wiz.SelectBySlot(&myStruct{ID: 99}, 50))
-	assert.Equal(shardSet2, wiz.SelectBySlot(&myStruct{ID: 99}, 99))
-	assert.Equal(shardSet1, wiz.SelectBySlot(&myStruct{ID: 99}, 100))
-	assert.Equal(shardSet1, wiz.SelectBySlot(&myStruct{ID: 99}, 149))
-	assert.Equal(shardSet2, wiz.SelectBySlot(&myStruct{ID: 99}, 150))
-	assert.Equal(shardSet2, wiz.SelectBySlot(&myStruct{ID: 99}, 199))
-	assert.Equal(shardSet1, wiz.SelectBySlot(&myStruct{ID: 99}, 200))
+	assert.Equal(shardSet1, wiz.SelectByKey(&myStruct{ID: 99}, 1))
+	assert.Equal(shardSet1, wiz.SelectByKey(&myStruct{ID: 99}, 49))
+	assert.Equal(shardSet2, wiz.SelectByKey(&myStruct{ID: 99}, 50))
+	assert.Equal(shardSet2, wiz.SelectByKey(&myStruct{ID: 99}, 99))
+	assert.Equal(shardSet1, wiz.SelectByKey(&myStruct{ID: 99}, 100))
+	assert.Equal(shardSet1, wiz.SelectByKey(&myStruct{ID: 99}, 149))
+	assert.Equal(shardSet2, wiz.SelectByKey(&myStruct{ID: 99}, 150))
+	assert.Equal(shardSet2, wiz.SelectByKey(&myStruct{ID: 99}, 199))
+	assert.Equal(shardSet1, wiz.SelectByKey(&myStruct{ID: 99}, 200))
 
 	// non object test
 	s2 := wiz.CreateShardCluster("shard table", 100)
 	s2.RegisterShard(0, 49, NewCluster("x01-master"))
 	s2.RegisterShard(50, 99, NewCluster("x02-master"))
-	c4 := s2.SelectBySlot(5000)
-	c5 := wiz.SelectBySlot("shard table", 5000)
+	c4 := s2.SelectByKey(5000)
+	c5 := wiz.SelectByKey("shard table", 5000)
 	assert.Equal(c4, c5, "Select() returns nil for shardcluster when obj does not contain shardkey")
 
 	// error
-	nilTable := wiz.SelectBySlot("not registered", 99)
+	nilTable := wiz.SelectByKey("not registered", 99)
 	assert.Nil(nilTable, "Select() returns nil when table name does not registered")
 }

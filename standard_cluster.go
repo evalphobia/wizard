@@ -46,8 +46,8 @@ func (c StandardCluster) Slaves() []*Node {
 	return []*Node{c.Slave()}
 }
 
-// SelectBySlot is dummy method for interface
-func (c *StandardCluster) SelectBySlot(i int64) *StandardCluster {
+// SelectByKey is dummy method for interface
+func (c *StandardCluster) SelectByKey(v interface{}) *StandardCluster {
 	return c
 }
 

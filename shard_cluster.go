@@ -44,8 +44,9 @@ func (c ShardCluster) Slaves() []*Node {
 	return result
 }
 
-// SelectBySlot returns sharded cluster by hash slot id
-func (c ShardCluster) SelectBySlot(i int64) *StandardCluster {
+// SelectByKey returns sharded cluster by shard key
+func (c ShardCluster) SelectByKey(key interface{}) *StandardCluster {
+	i := getInt64(key)
 	mod := i % c.slotsize
 	for _, shard := range c.List {
 		if shard.InRange(mod) {

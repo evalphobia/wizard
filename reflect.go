@@ -19,12 +19,12 @@ func NormalizeValue(p interface{}) interface{} {
 	return v.Interface()
 }
 
-func getID(p interface{}) int64 {
+func getShardKey(p interface{}) int64 {
 	v := toValue(p)
 	if v.Kind() != reflect.Struct {
 		return 0
 	}
-	return getIDFromStruct(p, TagName)
+	return getShardKeyFromStruct(p, TagName)
 }
 
 // toValue converts any value to reflect.Value
@@ -45,7 +45,7 @@ func toType(p interface{}) reflect.Type {
 	return t
 }
 
-func getIDFromStruct(p interface{}, tagName string) int64 {
+func getShardKeyFromStruct(p interface{}, tagName string) int64 {
 	t := toType(p)
 	values := toValue(p)
 	for i, max := 0, t.NumField(); i < max; i++ {

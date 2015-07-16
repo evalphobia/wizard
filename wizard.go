@@ -6,7 +6,7 @@ import (
 
 // Cluster is interface for [StandardCluster | ShardCluster]
 type Cluster interface {
-	SelectBySlot(i int64) *StandardCluster
+	SelectByKey(interface{}) *StandardCluster
 	Master() *Node
 	Masters() []*Node
 	Slave() *Node
@@ -92,18 +92,17 @@ func (w *Wizard) Select(obj interface{}) *StandardCluster {
 	case *StandardCluster:
 		return v
 	case *ShardCluster:
-		return v.SelectBySlot(getID(obj))
+		return v.SelectByKey(getShardKey(obj))
 	default:
 		return nil
 	}
 }
 
-// SelectBySlot returns StandardCluster by name mapping and hash slot
-func (w *Wizard) SelectBySlot(obj interface{}, id interface{}) *StandardCluster {
+// SelectByKey returns StandardCluster by name mapping and shard key
+func (w *Wizard) SelectByKey(obj interface{}, key interface{}) *StandardCluster {
 	c := w.getCluster(obj)
 	if c == nil {
 		return nil
 	}
-	i := getInt64(id)
-	return c.SelectBySlot(i)
+	return c.SelectByKey(key)
 }
