@@ -32,7 +32,7 @@ func (c ShardCluster) Slave() *Node {
 	return nil
 }
 
-// Masters returns all db masters from the sharded clusters
+// Slaves randomly returns all db slaves from the sharded clusters
 func (c ShardCluster) Slaves() []*Node {
 	var result []*Node
 	for _, s := range c.List {

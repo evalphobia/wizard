@@ -15,11 +15,11 @@ func (w *Wizard) UseMaster(obj interface{}) interface{} {
 
 // UseMasters returns all db master instances for sharding
 func (w *Wizard) UseMasters(obj interface{}) []interface{} {
+	var results []interface{}
 	c := w.getCluster(obj)
 	if c == nil {
-		return nil
+		return results
 	}
-	var results []interface{}
 	for _, node := range c.Masters() {
 		db := node.DB()
 		if db == nil {
@@ -44,12 +44,13 @@ func (w *Wizard) UseSlave(obj interface{}) interface{} {
 	return db.DB()
 }
 
+// UseSlaves randomly returns all db slave instances for sharding
 func (w *Wizard) UseSlaves(obj interface{}) []interface{} {
+	var results []interface{}
 	c := w.getCluster(obj)
 	if c == nil {
-		return nil
+		return results
 	}
-	var results []interface{}
 	for _, node := range c.Slaves() {
 		db := node.DB()
 		if db == nil {

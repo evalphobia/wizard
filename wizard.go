@@ -50,6 +50,7 @@ func (w *Wizard) getCluster(obj interface{}) Cluster {
 	}
 }
 
+// RegisterTables adds cluster and tables for name mapping
 func (w *Wizard) RegisterTables(c Cluster, list ...interface{}) error {
 	for _, obj := range list {
 		v := NormalizeValue(obj)

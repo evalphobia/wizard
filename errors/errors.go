@@ -63,3 +63,27 @@ func NewErrCommitAll(es []error) Err {
 	}
 	return Err{Code: 20004, Info: strings.Join(messages, " ")}
 }
+
+func NewErrRollbackAll(es []error) Err {
+	messages := []string{"rollback all error: "}
+	for _, err := range es {
+		messages = append(messages, err.Error())
+	}
+	return Err{Code: 20005, Info: strings.Join(messages, " ")}
+}
+
+func NewErrAnotherTx(name interface{}) Err {
+	return Err{Code: 20006, Info: "transaction already exists, db=" + fmt.Sprint(name)}
+}
+
+func NewErrParallelQuery(es []error) Err {
+	messages := []string{"parallel query error: "}
+	for _, err := range es {
+		messages = append(messages, err.Error())
+	}
+	return Err{Code: 30001, Info: strings.Join(messages, " || ")}
+}
+
+func NewErrArgType(msg string) Err {
+	return Err{Code: 30002, Info: msg}
+}

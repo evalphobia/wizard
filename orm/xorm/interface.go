@@ -5,9 +5,45 @@ import (
 	"io"
 	"time"
 
-	"github.com/go-xorm/xorm"
 	"github.com/go-xorm/core"
+	"github.com/go-xorm/xorm"
 )
+
+// ORM is wrapper interface for wizard.Xorm
+type ORM interface {
+	ReadOnly(bool)
+	IsReadOnly() bool
+	SetAutoTransaction(bool)
+	IsAutoTransaction() bool
+
+	Master(interface{}) Engine
+	MasterByKey(interface{}, interface{}) Engine
+	Masters(interface{}) []Engine
+	Slave(interface{}) Engine
+	SlaveByKey(interface{}, interface{}) Engine
+	Slaves(interface{}) []Engine
+
+	Get(interface{}, func(Session) (bool, error)) (bool, error)
+	Find(interface{}, func(Session) error) error
+	Count(interface{}, func(Session) (int64, error)) (int64, error)
+	Insert(interface{}, func(Session) (int64, error)) (int64, error)
+	Update(interface{}, func(Session) (int64, error)) (int64, error)
+	GetUsingMaster(interface{}, func(Session) (bool, error)) (bool, error)
+	FindUsingMaster(interface{}, func(Session) error) error
+	CountUsingMaster(interface{}, func(Session) (int64, error)) (int64, error)
+
+	NewMasterSession(interface{}) (Session, error)
+	NewMasterSessionByKey(interface{}, interface{}) (Session, error)
+	NewSlaveSession(interface{}) (Session, error)
+	NewSlaveSessionByKey(interface{}, interface{}) (Session, error)
+
+	ForceNewTransaction(interface{}) (Session, error)
+	Transaction(interface{}) (Session, error)
+	TransactionByKey(interface{}, interface{}) (Session, error)
+	AutoTransaction(interface{}, Session) error
+	CommitAll() error
+	RollbackAll() error
+}
 
 // Session is interface for xorm.Session
 type Session interface {
@@ -68,8 +104,7 @@ type Session interface {
 	Sync2(...interface{}) error
 }
 
-// Engine
-
+// Engine is interface for xorm.Engine
 type Engine interface {
 	SetDisableGlobalCache(bool)
 	DriverName() string

@@ -93,49 +93,43 @@ func ExampleTransaction() {
 	user1 := &User{ID: 1, Name: "Adam Smith"}
 	user2 := &User{ID: 2, Name: "Benjamin Franklin"}
 
-	orm.Begin(user1)
-	orm.Begin(user2)
-	_, err = orm.Insert(user1, func(s Session) (int64, error) {
-		return s.Insert(user1)
-	})
+	s1, _ := orm.Transaction(user1)
+	s2, _ := orm.Transaction(user2)
+
+	_, err = s1.Insert(user1)
 	if err != nil {
-		orm.Rollback(user1)
-		orm.Rollback(user2)
+		orm.RollbackAll()
 		return
 	}
-	_, err = orm.Insert(user2, func(s Session) (int64, error) {
-		return s.Insert(user2)
-	})
+	_, err = s2.Insert(user2)
 	if err != nil {
-		orm.Rollback(user1)
-		orm.Rollback(user2)
+		orm.RollbackAll()
 		return
 	}
-	orm.Commit(user1)
-	orm.Commit(user2)
+	orm.CommitAll()
 }
 
-func ExampleLazyTransaction() {
+func ExampleTransactionAuto() {
 	var err error
 	orm := New(w)
 
 	user1 := &User{ID: 1, Name: "Adam Smith"}
 	user2 := &User{ID: 2, Name: "Benjamin Franklin"}
 
-	orm.LazyBegin(User{})
+	orm.SetAutoTransaction(true)
 	_, err = orm.Insert(user1, func(s Session) (int64, error) {
 		return s.Insert(user1)
 	})
 	if err != nil {
-		orm.LazyRollback(User{})
+		orm.RollbackAll()
 		return
 	}
 	_, err = orm.Insert(user2, func(s Session) (int64, error) {
 		return s.Insert(user2)
 	})
 	if err != nil {
-		orm.LazyRollback(User{})
+		orm.RollbackAll()
 		return
 	}
-	orm.LazyCommit(User{})
+	orm.CommitAll()
 }

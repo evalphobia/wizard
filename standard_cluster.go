@@ -41,7 +41,7 @@ func (c StandardCluster) Slave() *Node {
 	return c.slaves[rand.Intn(len(c.slaves))]
 }
 
-// Masters is dummy method for interface
+// Slaves is dummy method for interface
 func (c StandardCluster) Slaves() []*Node {
 	return []*Node{c.Slave()}
 }

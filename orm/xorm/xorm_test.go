@@ -16,11 +16,39 @@ var (
 	dbUser02Master, dbUser02Slave01, dbUser02Slave02 Engine // user B
 	dbFoobarMaster, dbFoobarSlave01, dbFoobarSlave02 Engine
 	dbOther                                          Engine
-	wiz                                              *wizard.Wizard
+	wiz, emptyWiz                                    *wizard.Wizard
 )
+
+type testUser struct {
+	ID   int64  `xorm:"id pk not null" shard_key:"true"`
+	Name string `xorm:"varchar(255) not null"`
+}
+
+func (u testUser) TableName() string {
+	return "test_user"
+}
+
+type testFoobar struct {
+	ID   int64  `xorm:"id pk not null"`
+	Name string `xorm:"varchar(255) not null"`
+}
+
+func (f testFoobar) TableName() string {
+	return "test_foobar"
+}
+
+type testCompany struct {
+	ID   int64  `xorm:"id pk not null"`
+	Name string `xorm:"varchar(255) not null"`
+}
+
+func (c testCompany) TableName() string {
+	return "test_company"
+}
 
 func init() {
 	initTestDB()
+	emptyWiz = wizard.NewWizard()
 }
 
 func initTestDB() {
@@ -108,391 +136,91 @@ func testCreateWizard() *wizard.Wizard {
 	return wiz
 }
 
+func countUserMaster(orm *Xorm) int64 {
+	count, _ := orm.CountUsingMaster(&testUser{ID: 1}, func(s Session) (int64, error) {
+		return s.Count(&testUser{})
+	})
+	return count
+}
+
+func countUserMasterB(orm *Xorm) int64 {
+	count, _ := orm.CountUsingMaster(&testUser{ID: 500}, func(s Session) (int64, error) {
+		return s.Count(&testUser{})
+	})
+	return count
+}
+
+func countUserSlave(orm *Xorm) int64 {
+	count, _ := orm.Count(&testUser{ID: 1}, func(s Session) (int64, error) {
+		return s.Count(&testUser{})
+	})
+	return count
+}
+
+func countUserSlaveB(orm *Xorm) int64 {
+	count, _ := orm.Count(&testUser{ID: 500}, func(s Session) (int64, error) {
+		return s.Count(&testUser{})
+	})
+	return count
+}
+
+func countUserBySession(s Session) int64 {
+	count, _ := s.Count(testUser{})
+	return count
+}
+
 func TestNew(t *testing.T) {
 	assert := assert.New(t)
 	wiz := wizard.NewWizard()
 
 	orm := New(wiz)
-	assert.Equal(wiz, orm.c)
+	assert.Equal(wiz, orm.Wiz)
 }
 
-func TestUseMaster(t *testing.T) {
+func TestReadOnly(t *testing.T) {
 	assert := assert.New(t)
-	wiz := testCreateWizard()
+	wiz := wizard.NewWizard()
 
 	orm := New(wiz)
-	assert.Equal(dbFoobarMaster, orm.UseMaster(testFoobar{}))
-	assert.Equal(dbOther, orm.UseMaster("xxx"))
+	assert.False(orm.readOnly)
+	orm.ReadOnly(true)
+	assert.True(orm.readOnly)
+	orm.ReadOnly(false)
+	assert.False(orm.readOnly)
 }
 
-func TestUseMasters(t *testing.T) {
+func TestIsReadOnly(t *testing.T) {
 	assert := assert.New(t)
-	wiz := testCreateWizard()
-	orm := New(wiz)
+	wiz := wizard.NewWizard()
 
-	shardMasters := []Engine{dbUser01Master, dbUser02Master}
-	assert.Equal(shardMasters, orm.UseMasters(testUser{}))
-	assert.Equal([]Engine{dbFoobarMaster}, orm.UseMasters(testFoobar{}))
-	assert.Equal([]Engine{dbOther}, orm.UseMasters("xxx"))
+	orm := New(wiz)
+	assert.False(orm.IsReadOnly())
+	orm.ReadOnly(true)
+	assert.True(orm.IsReadOnly())
+	orm.ReadOnly(false)
+	assert.False(orm.IsReadOnly())
 }
 
-func TestUseSlave(t *testing.T) {
+func TestSetAutoTransaction(t *testing.T) {
 	assert := assert.New(t)
-	wiz := testCreateWizard()
-	orm := New(wiz)
+	wiz := wizard.NewWizard()
 
-	assert.Contains([]Engine{dbFoobarSlave01, dbFoobarSlave02}, orm.UseSlave(testFoobar{}))
-	assert.Equal(dbOther, orm.UseSlave("xxx"))
+	orm := New(wiz)
+	assert.False(orm.autoTx)
+	orm.SetAutoTransaction(true)
+	assert.True(orm.autoTx)
+	orm.SetAutoTransaction(false)
+	assert.False(orm.autoTx)
 }
 
-func TestGet(t *testing.T) {
+func TestSetIsAutoTransaction(t *testing.T) {
 	assert := assert.New(t)
-	wiz := testCreateWizard()
+	wiz := wizard.NewWizard()
+
 	orm := New(wiz)
-
-	var row interface{}
-	var has bool
-	var err error
-	fn := func(s Session) (bool, error) {
-		return s.Get(row)
-	}
-
-	row = &testUser{ID: 1}
-	has, err = orm.Get(row, fn)
-	assert.Nil(err)
-	assert.True(has)
-	assert.Equal(int64(1), row.(*testUser).ID)
-	assert.Equal("Adam", row.(*testUser).Name)
-
-	row = &testUser{ID: 501}
-	has, err = orm.Get(row, fn)
-	assert.Nil(err)
-	assert.True(has)
-	assert.Equal(int64(501), row.(*testUser).ID)
-	assert.Equal("Betty", row.(*testUser).Name)
-
-	row = &testFoobar{ID: 1}
-	has, err = orm.Get(row, fn)
-	assert.Nil(err)
-	assert.True(has)
-	assert.Equal(int64(1), row.(*testFoobar).ID)
-	assert.Equal("foobar#1", row.(*testFoobar).Name)
-
-	row = &testCompany{ID: 2}
-	has, err = orm.Get(row, fn)
-	assert.Nil(err)
-	assert.True(has)
-	assert.Equal(int64(2), row.(*testCompany).ID)
-	assert.Equal("BOX", row.(*testCompany).Name)
-
-	// not found
-	row = &testUser{ID: 4}
-	has, err = orm.Get(row, fn)
-	assert.Nil(err)
-	assert.False(has)
-	assert.Equal(int64(4), row.(*testUser).ID)
-	assert.Equal("", row.(*testUser).Name)
-
-	// not found
-	row = &testUser{ID: 504}
-	has, err = orm.Get(row, fn)
-	assert.Nil(err)
-	assert.False(has)
-	assert.Equal(int64(504), row.(*testUser).ID)
-	assert.Equal("", row.(*testUser).Name)
-}
-
-func TestFind(t *testing.T) {
-	assert := assert.New(t)
-	wiz := testCreateWizard()
-	orm := New(wiz)
-
-	var err error
-
-	// user A
-	var usersA []*testUser
-	err = orm.Find(testUser{}, func(s Session) error {
-		s.Where("id > 1")
-		return s.Find(&usersA)
-	})
-	assert.Nil(err)
-	assert.Len(usersA, 2)
-
-	// user B
-	var usersB []*testUser
-	err = orm.Find(testUser{ID: 500}, func(s Session) error {
-		s.Where("id > 1")
-		return s.Find(&usersB)
-	})
-	assert.Nil(err)
-	assert.Len(usersB, 3)
-
-	var foobars []*testFoobar
-	err = orm.Find(&testFoobar{}, func(s Session) error {
-		s.Id(1)
-		return s.Find(&foobars)
-	})
-	assert.Nil(err)
-	assert.Len(foobars, 1)
-
-	var companies []*testCompany
-	err = orm.Find(&testCompany{}, func(s Session) error {
-		s.Where("id > 2")
-		return s.Find(&companies)
-	})
-	assert.Nil(err)
-	assert.Len(companies, 1)
-}
-
-func TestCount(t *testing.T) {
-	assert := assert.New(t)
-	wiz := testCreateWizard()
-	orm := New(wiz)
-
-	var count int64
-	var err error
-
-	// user A
-	count, err = orm.Count(&testUser{ID: 1}, func(s Session) (int64, error) {
-		s.Where("id > 1")
-		return s.Count(&testUser{})
-	})
-	assert.Nil(err)
-	assert.EqualValues(2, count)
-
-	// user B
-	count, err = orm.Count(&testUser{ID: 501}, func(s Session) (int64, error) {
-		s.Where("id > 1")
-		return s.Count(&testUser{})
-	})
-	assert.Nil(err)
-	assert.EqualValues(3, count)
-
-	count, err = orm.Count(&testFoobar{}, func(s Session) (int64, error) {
-		return s.Count(&testFoobar{ID: 1})
-	})
-	assert.Nil(err)
-	assert.EqualValues(1, count)
-
-	count, err = orm.Count(&testCompany{}, func(s Session) (int64, error) {
-		s.Where("id > 2")
-		return s.Count(&testCompany{})
-	})
-	assert.Nil(err)
-	assert.EqualValues(1, count)
-}
-
-func TestInsert(t *testing.T) {
-	assert := assert.New(t)
-	wiz := testCreateWizard()
-	orm := New(wiz)
-
-	var row interface{}
-	var affected int64
-	var err error
-	var success int64 = 1
-	fn := func(s Session) (int64, error) {
-		return s.Insert(row)
-	}
-	getFn := func(s Session) (bool, error) {
-		return s.Get(row)
-	}
-	countFn := func(table, obj interface{}) int64 {
-		count, _ := orm.Count(table, func(s Session) (int64, error) {
-			return s.Count(obj)
-		})
-		return count
-	}
-
-	testWaitForIO()
-
-	// user A
-	assert.EqualValues(3, countFn(testUser{ID: 1}, &testUser{}))
-	row = &testUser{ID: 1000, Name: "Daniel"}
-	affected, err = orm.Insert(row, fn)
-	assert.Nil(err)
-	assert.Equal(success, affected)
-	assert.EqualValues(4, countFn(testUser{ID: 1}, &testUser{}))
-
-	row = &testUser{ID: 1000}
-	orm.Get(row, getFn)
-	assert.Equal("Daniel", row.(*testUser).Name)
-
-	testWaitForIO()
-
-	// user B
-	assert.EqualValues(3, countFn(testUser{ID: 500}, &testUser{}))
-	row = &testUser{ID: 1500, Name: "Dorothy"}
-	affected, err = orm.Insert(row, fn)
-	assert.Nil(err)
-	assert.Equal(success, affected)
-	assert.EqualValues(4, countFn(testUser{ID: 500}, &testUser{}))
-
-	row = &testUser{ID: 1500}
-	orm.Get(row, getFn)
-	assert.Equal("Dorothy", row.(*testUser).Name)
-
-	testWaitForIO()
-
-	// foobar
-	assert.EqualValues(3, countFn(testFoobar{}, &testFoobar{}))
-	row = &testFoobar{ID: 4, Name: "foobar#4"}
-	affected, err = orm.Insert(row, fn)
-	assert.Nil(err)
-	assert.Equal(success, affected)
-	assert.EqualValues(4, countFn(testFoobar{}, &testFoobar{}))
-
-	row = &testFoobar{ID: 4}
-	orm.Get(row, getFn)
-	assert.Equal("foobar#4", row.(*testFoobar).Name)
-
-	testWaitForIO()
-
-	// other
-	assert.EqualValues(3, countFn(testCompany{}, &testCompany{}))
-	row = &testCompany{ID: 4, Name: "Delta Air Lines"}
-	affected, err = orm.Insert(row, fn)
-	assert.Nil(err)
-	assert.Equal(success, affected)
-	assert.EqualValues(4, countFn(testCompany{}, &testCompany{}))
-
-	row = &testCompany{ID: 4}
-	orm.Get(row, getFn)
-	assert.Equal("Delta Air Lines", row.(*testCompany).Name)
-
-	testWaitForIO()
-
-	// multiple rows
-	assert.EqualValues(4, countFn(testCompany{}, &testCompany{}))
-	rows := []*testCompany{
-		{ID: 5, Name: "eureka"},
-		{ID: 6, Name: "Facebook"},
-		{ID: 7, Name: "Google"},
-	}
-	affected, err = orm.Insert(testCompany{}, func(s Session) (int64, error) {
-		return s.Insert(&rows)
-	})
-	assert.Nil(err)
-	assert.Equal(int64(3), affected)
-	assert.EqualValues(7, countFn(testCompany{}, &testCompany{}))
-
-	testWaitForIO()
-
-	initTestDB()
-}
-
-func TestUpdate(t *testing.T) {
-	assert := assert.New(t)
-	wiz := testCreateWizard()
-	orm := New(wiz)
-
-	var row interface{}
-	var affected int64
-	var err error
-	var success int64 = 1
-	getFn := func(s Session) (bool, error) {
-		return s.Get(row)
-	}
-
-	// user A
-	var user *testUser
-	user = &testUser{ID: 1, Name: "Akira"}
-	affected, err = orm.Update(user, func(s Session) (int64, error) {
-		s.Where("id = ?", user.ID)
-		return s.Update(user)
-	})
-	assert.Nil(err)
-	assert.Equal(success, affected)
-
-	row = &testUser{ID: 1}
-	orm.Get(row, getFn)
-	assert.Equal("Akira", row.(*testUser).Name)
-
-	// // user B
-	user = &testUser{ID: 501, Name: "Aiko"}
-	affected, err = orm.Update(user, func(s Session) (int64, error) {
-		s.Where("id = ?", user.ID)
-		return s.Update(user)
-	})
-	assert.Nil(err)
-	assert.Equal(success, affected)
-
-	row = &testUser{ID: 501}
-	orm.Get(row, getFn)
-	assert.Equal("Aiko", row.(*testUser).Name)
-
-	// foobar
-	var foobar *testFoobar
-	foobar = &testFoobar{ID: 1, Name: "foobar#1b"}
-	affected, err = orm.Update(foobar, func(s Session) (int64, error) {
-		s.Where("id = ?", foobar.ID)
-		return s.Update(foobar)
-	})
-	assert.Nil(err)
-	assert.Equal(success, affected)
-
-	row = &testFoobar{ID: 1}
-	orm.Get(row, getFn)
-	assert.Equal("foobar#1b", row.(*testFoobar).Name)
-
-	// other
-	var company *testCompany
-	company = &testCompany{ID: 1, Name: "Alibaba"}
-	affected, err = orm.Update(company, func(s Session) (int64, error) {
-		s.Where("id = ?", company.ID)
-		return s.Update(company)
-	})
-	assert.Nil(err)
-	assert.Equal(success, affected)
-
-	row = &testCompany{ID: 1}
-	orm.Get(row, getFn)
-	assert.Equal("Alibaba", row.(*testCompany).Name)
-
-	// multiple rows
-	foobar = &testFoobar{Name: "foobar#XXX"}
-	affected, err = orm.Update(foobar, func(s Session) (int64, error) {
-		return s.Update(foobar)
-	})
-	assert.Nil(err)
-	assert.Equal(int64(3), affected)
-
-	row = &testFoobar{ID: 1}
-	orm.Get(row, getFn)
-	assert.Equal("foobar#XXX", row.(*testFoobar).Name)
-	row = &testFoobar{ID: 2}
-	orm.Get(row, getFn)
-	assert.Equal("foobar#XXX", row.(*testFoobar).Name)
-	row = &testFoobar{ID: 3}
-	orm.Get(row, getFn)
-	assert.Equal("foobar#XXX", row.(*testFoobar).Name)
-
-	initTestDB()
-}
-
-type testUser struct {
-	ID   int64  `xorm:"id pk not null" shard_key:"true"`
-	Name string `xorm:"varchar(255) not null"`
-}
-
-func (u testUser) TableName() string {
-	return "test_user"
-}
-
-type testFoobar struct {
-	ID   int64  `xorm:"id pk not null"`
-	Name string `xorm:"varchar(255) not null"`
-}
-
-func (f testFoobar) TableName() string {
-	return "test_foobar"
-}
-
-type testCompany struct {
-	ID   int64  `xorm:"id pk not null"`
-	Name string `xorm:"varchar(255) not null"`
-}
-
-func (c testCompany) TableName() string {
-	return "test_company"
+	assert.False(orm.IsAutoTransaction())
+	orm.SetAutoTransaction(true)
+	assert.True(orm.IsAutoTransaction())
+	orm.SetAutoTransaction(false)
+	assert.False(orm.IsAutoTransaction())
 }
