@@ -53,7 +53,13 @@ func getShardKeyFromStruct(p interface{}, tagName string) int64 {
 		if f.PkgPath != "" {
 			continue
 		}
+
 		tag := parseTag(f, tagName)
+		// search recursively when `extends` tag
+		if tag == "extends" {
+			v := values.Field(i)
+			return getShardKeyFromStruct(v.Interface(), tagName)
+		}
 		if tag != "true" {
 			continue
 		}
