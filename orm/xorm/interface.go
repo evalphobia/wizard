@@ -43,6 +43,7 @@ type ORM interface {
 	AutoTransaction(interface{}, Session) error
 	CommitAll() error
 	RollbackAll() error
+	CloseAll()
 }
 
 // Session is interface for xorm.Session

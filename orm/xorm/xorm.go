@@ -23,7 +23,10 @@ func New(wiz *wizard.Wizard) *Xorm {
 	orm.Wiz = wiz
 	orm.XormFunction = &XormFunction{orm: orm}
 	orm.XormWizard = &XormWizard{wiz}
-	orm.XormSession = &XormSession{orm: orm}
+	orm.XormSession = &XormSession{
+		orm:      orm,
+		sessions: make(map[interface{}]Session),
+	}
 	orm.XormTransaction = &XormTransaction{
 		orm:          orm,
 		transactions: make(map[interface{}]Session),

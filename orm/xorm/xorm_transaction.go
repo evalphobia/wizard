@@ -73,7 +73,7 @@ func (xtx *XormTransaction) addTransaction(db interface{}, s Session) {
 
 // AutoTransaction starts transaction for the session and store it
 // if not in the AutoTransaction mode, nothing happens
-// if old transaction exits, return it
+// if old transaction exists, return it
 func (xtx *XormTransaction) AutoTransaction(obj interface{}, s Session) error {
 	if !xtx.orm.IsAutoTransaction() {
 		return nil
@@ -108,6 +108,7 @@ func (xtx *XormTransaction) CommitAll() error {
 		if err != nil {
 			errList = append(errList, err)
 		}
+		s.Init()
 	}
 
 	xtx.transactions = make(map[interface{}]Session)
@@ -128,6 +129,7 @@ func (xtx *XormTransaction) RollbackAll() error {
 		if err != nil {
 			errList = append(errList, err)
 		}
+		s.Init()
 	}
 
 	xtx.transactions = make(map[interface{}]Session)

@@ -89,14 +89,16 @@ func TestAutoTransaction(t *testing.T) {
 	xtx := orm.XormTransaction
 	assert.Len(xtx.transactions, 0)
 
-	s, _ := orm.NewMasterSession(testUser{ID: 1})
+	user1 := testUser{ID: 1}
 
-	err := orm.AutoTransaction(testUser{ID: 1}, s)
+	s, _ := orm.NewMasterSession(user1)
+
+	err := orm.AutoTransaction(user1, s)
 	assert.Nil(err)
 	assert.Len(xtx.transactions, 0, "transaction is not added")
 
 	orm.SetAutoTransaction(true)
-	err = orm.AutoTransaction(testUser{ID: 1}, s)
+	err = orm.AutoTransaction(user1, s)
 	assert.Nil(err)
 	assert.Len(xtx.transactions, 1, "transaction is added")
 
@@ -105,11 +107,14 @@ func TestAutoTransaction(t *testing.T) {
 	assert.EqualValues(4, countUserBySession(s), "users count after insert in the transaction")
 	assert.EqualValues(4, countUserMaster(orm), "users count after insert in the transaction")
 
-	orm.SetAutoTransaction(false)
-	assert.EqualValues(3, countUserMaster(orm), "users count after insert  in another session")
+	s2, _ := newSession(orm.Master(user1), user1)
+	assert.EqualValues(3, countUserBySession(s2), "users count after insert in another session")
 
 	err = s.Rollback()
 	assert.Nil(err)
+	s.Init()
+	assert.EqualValues(3, countUserBySession(s), "users count after rollback")
+
 }
 
 func TestAutoTransactionDuplicateTx(t *testing.T) {
@@ -140,18 +145,23 @@ func TestCommitAll(t *testing.T) {
 	xtx := orm.XormTransaction
 	assert.Len(xtx.transactions, 0)
 
-	s1, _ := orm.NewMasterSession(testUser{ID: 1})
-	s2, _ := orm.NewMasterSession(testUser{ID: 500})
+	user1 := testUser{ID: 1}
+	user500 := testUser{ID: 500}
+
+	s1, _ := orm.NewMasterSession(user1)
+	s2, _ := orm.NewMasterSession(user500)
 
 	orm.SetAutoTransaction(true)
-	orm.AutoTransaction(testUser{ID: 1}, s1)
-	orm.AutoTransaction(testUser{ID: 500}, s2)
+	orm.AutoTransaction(user1, s1)
+	orm.AutoTransaction(user500, s2)
 	assert.Len(xtx.transactions, 2, "transaction is added")
 
 	assert.EqualValues(3, countUserBySession(s1), "initial users count")
 	assert.EqualValues(3, countUserBySession(s2), "initial users count")
 
-	s1.Insert(&testUser{ID: 4})
+	num, err := s1.Insert(&testUser{ID: 4})
+	assert.Nil(err)
+	assert.EqualValues(1, num)
 	s2.Insert(&testUser{ID: 504})
 	assert.EqualValues(4, countUserBySession(s1), "users count after insert in the transaction")
 	assert.EqualValues(4, countUserBySession(s2), "users count after insert in the transaction")
@@ -159,11 +169,13 @@ func TestCommitAll(t *testing.T) {
 	assert.EqualValues(4, countUserMasterB(orm), "users count after insert in the transaction")
 
 	orm.SetAutoTransaction(false)
-	assert.EqualValues(3, countUserMaster(orm), "users count after insert  in another session")
-	assert.EqualValues(3, countUserMasterB(orm), "users count after insert  in another session")
+	s1b, _ := newSession(orm.Master(user1), user1)
+	s2b, _ := newSession(orm.Master(user500), user500)
+	assert.EqualValues(3, countUserBySession(s1b), "users count after insert  in another session")
+	assert.EqualValues(3, countUserBySession(s2b), "users count after insert  in another session")
 
 	orm.ReadOnly(true)
-	err := orm.CommitAll()
+	err = orm.CommitAll()
 	assert.Nil(err)
 	assert.Len(xtx.transactions, 2, "transaction is not removed when readonly")
 
@@ -185,12 +197,15 @@ func TestRollbackAll(t *testing.T) {
 	xtx := orm.XormTransaction
 	assert.Len(xtx.transactions, 0)
 
-	s1, _ := orm.NewMasterSession(testUser{ID: 1})
-	s2, _ := orm.NewMasterSession(testUser{ID: 500})
+	user1 := testUser{ID: 1}
+	user500 := testUser{ID: 500}
+
+	s1, _ := orm.NewMasterSession(user1)
+	s2, _ := orm.NewMasterSession(user500)
 
 	orm.SetAutoTransaction(true)
-	orm.AutoTransaction(testUser{ID: 1}, s1)
-	orm.AutoTransaction(testUser{ID: 500}, s2)
+	orm.AutoTransaction(user1, s1)
+	orm.AutoTransaction(user500, s2)
 	assert.Len(xtx.transactions, 2, "transaction is added")
 
 	assert.EqualValues(3, countUserBySession(s1), "initial users count")
@@ -204,8 +219,10 @@ func TestRollbackAll(t *testing.T) {
 	assert.EqualValues(4, countUserMasterB(orm), "users count after insert in the transaction")
 
 	orm.SetAutoTransaction(false)
-	assert.EqualValues(3, countUserMaster(orm), "users count after insert  in another session")
-	assert.EqualValues(3, countUserMasterB(orm), "users count after insert  in another session")
+	s1b, _ := newSession(orm.Master(user1), user1)
+	s2b, _ := newSession(orm.Master(user500), user500)
+	assert.EqualValues(3, countUserBySession(s1b), "users count after insert  in another session")
+	assert.EqualValues(3, countUserBySession(s2b), "users count after insert  in another session")
 
 	orm.ReadOnly(true)
 	err := orm.RollbackAll()
