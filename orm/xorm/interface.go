@@ -29,6 +29,7 @@ type ORM interface {
 	Insert(interface{}, func(Session) (int64, error)) (int64, error)
 	Update(interface{}, func(Session) (int64, error)) (int64, error)
 	FindParallel(interface{}, interface{}, string, ...interface{}) error
+	FindParallelByCondition(interface{}, FindCondition) error
 	GetUsingMaster(interface{}, func(Session) (bool, error)) (bool, error)
 	FindUsingMaster(interface{}, func(Session) error) error
 	CountUsingMaster(interface{}, func(Session) (int64, error)) (int64, error)
