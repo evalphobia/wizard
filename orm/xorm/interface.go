@@ -102,7 +102,7 @@ type Session interface {
 	InsertOne(interface{}) (int64, error)
 	Update(interface{}, ...interface{}) (int64, error)
 	Delete(interface{}) (int64, error)
-	
+
 	LastSQL() (string, []interface{})
 	Sync2(...interface{}) error
 }
