@@ -70,3 +70,22 @@ func TestFindParallelByCondition(t *testing.T) {
 	assert.Contains(list, testUser{ID: 2, Name: "Benjamin"})
 	assert.Contains(list, testUser{ID: 501, Name: "Betty"})
 }
+
+func TestCountParallelByCondition(t *testing.T) {
+	assert := assert.New(t)
+	wiz := testCreateWizard()
+	orm := New(wiz)
+
+	var err error
+	var testObj testUser
+
+	// order by asc
+	cond := NewFindCondition(testUser{})
+	cond.And("id > ?", 1)
+
+	counts, err := orm.CountParallelByCondition(&testObj, cond)
+	assert.Nil(err)
+	assert.Len(counts, 2)
+	assert.Equal(counts[0], int64(2))
+	assert.Equal(counts[1], int64(3))
+}
