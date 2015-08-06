@@ -4,6 +4,8 @@
 
 # Wizard
 
+[![Join the chat at https://gitter.im/evalphobia/wizard](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/evalphobia/wizard?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Wizard is database/sql management library for multi instance and sharding in golang.  
 Inspired by [MixedGauge](https://github.com/taiki45/mixed_gauge)
 
