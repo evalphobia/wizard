@@ -66,6 +66,7 @@ type Session interface {
 	MustCols(...string) *xorm.Session
 	AllCols() *xorm.Session
 	Distinct(...string) *xorm.Session
+	ForUpdate() *xorm.Session
 	Omit(...string) *xorm.Session
 	Nullable(...string) *xorm.Session
 	NoAutoTime() *xorm.Session
