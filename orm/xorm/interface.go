@@ -70,6 +70,9 @@ type Session interface {
 	Omit(...string) *xorm.Session
 	Nullable(...string) *xorm.Session
 	NoAutoTime() *xorm.Session
+	Incr(string, ...interface{}) *xorm.Session
+	Decr(string, ...interface{}) *xorm.Session
+	SetExpr(string, string) *xorm.Session
 
 	Limit(int, ...int) *xorm.Session
 	OrderBy(string) *xorm.Session
