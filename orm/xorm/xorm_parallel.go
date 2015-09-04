@@ -27,6 +27,9 @@ func (xpr *XormParallel) CreateSessionsWithCondition(cond FindCondition) []Sessi
 		for _, w := range cond.Where {
 			s.And(w.Statement, w.Args...)
 		}
+		for _, in := range cond.WhereIn {
+			s.In(in.Statement, in.Args...)
+		}
 		for _, o := range cond.OrderBy {
 			if o.OrderByDesc {
 				s.Desc(o.Name)

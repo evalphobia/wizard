@@ -3,6 +3,7 @@ package xorm
 type FindCondition struct {
 	Table   interface{}
 	Where   []Where
+	WhereIn []Where
 	OrderBy []Order
 	Limit   int
 	Offset  int
@@ -30,6 +31,14 @@ func (c *FindCondition) And(s string, args ...interface{}) {
 		Args:      args,
 	}
 	c.Where = append(c.Where, w)
+}
+
+func (c *FindCondition) In(s string, args ...interface{}) {
+	w := Where{
+		Statement: s,
+		Args:      args,
+	}
+	c.WhereIn = append(c.WhereIn, w)
 }
 
 func (c *FindCondition) OrderByAsc(s string) {
