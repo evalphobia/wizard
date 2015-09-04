@@ -25,6 +25,14 @@ func NewErrNilDB(name interface{}) Err {
 	return Err{Code: 10000, Info: "cannot find db, name=" + fmt.Sprint(name)}
 }
 
+func NewErrNilDBs(es []error) Err {
+	var messages []string
+	for _, err := range es {
+		messages = append(messages, err.Error())
+	}
+	return Err{Code: 10001, Info: strings.Join(messages, " || ")}
+}
+
 func NewErrAlreadyRegistared(name interface{}) Err {
 	return Err{Code: 11001, Info: "already registered table name=" + fmt.Sprint(name)}
 }

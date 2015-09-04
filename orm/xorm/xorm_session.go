@@ -35,6 +35,36 @@ func (xse *XormSession) NewMasterSessionByKey(obj interface{}, key interface{}) 
 	return xse.session(db, obj)
 }
 
+// NewAllMasterSessions returns all of master sessions for the db of given object
+func (xse *XormSession) NewAllMasterSessions(obj interface{}) ([]Session, error) {
+	dbs := xse.orm.Masters(obj)
+
+	var sessions []Session
+	var errList []error
+	for _, db := range dbs {
+		var s Session
+		var err error
+
+		switch {
+		case xse.orm.IsAutoTransaction():
+			s, err = xse.orm.transaction(db, obj)
+		default:
+			s, err = xse.session(db, obj)
+		}
+
+		if err != nil {
+			errList = append(errList, err)
+			continue
+		}
+		sessions = append(sessions, s)
+	}
+
+	if len(errList) > 0 {
+		return sessions, errors.NewErrNilDBs(errList)
+	}
+	return sessions, nil
+}
+
 // NewSlaveSession returns new slave session for the slave db of given object
 func (xse *XormSession) NewSlaveSession(obj interface{}) (Session, error) {
 	db := xse.orm.Slave(obj)

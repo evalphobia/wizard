@@ -1,5 +1,23 @@
 package xorm
 
+type Where struct {
+	Statement string
+	Args      []interface{}
+}
+
+func NewWhere(s string, args ...interface{}) Where {
+	return Where{
+		Statement: s,
+		Args:      args,
+	}
+}
+
+type Order struct {
+	Name        string
+	OrderByDesc bool
+}
+
+// FindCondition is conditions for FindParallel
 type FindCondition struct {
 	Table   interface{}
 	Where   []Where
@@ -9,16 +27,6 @@ type FindCondition struct {
 	Offset  int
 }
 
-type Where struct {
-	Statement string
-	Args      []interface{}
-}
-
-type Order struct {
-	Name        string
-	OrderByDesc bool
-}
-
 func NewFindCondition(table interface{}) FindCondition {
 	return FindCondition{
 		Table: table,
@@ -26,19 +34,11 @@ func NewFindCondition(table interface{}) FindCondition {
 }
 
 func (c *FindCondition) And(s string, args ...interface{}) {
-	w := Where{
-		Statement: s,
-		Args:      args,
-	}
-	c.Where = append(c.Where, w)
+	c.Where = append(c.Where, NewWhere(s, args...))
 }
 
 func (c *FindCondition) In(s string, args ...interface{}) {
-	w := Where{
-		Statement: s,
-		Args:      args,
-	}
-	c.WhereIn = append(c.WhereIn, w)
+	c.WhereIn = append(c.WhereIn, NewWhere(s, args...))
 }
 
 func (c *FindCondition) OrderByAsc(s string) {
@@ -62,4 +62,60 @@ func (c *FindCondition) SetLimit(i int) {
 
 func (c *FindCondition) SetOffset(i int) {
 	c.Offset = i
+}
+
+// UpdateCondition is conditions for UpdateParallel
+type UpdateCondition struct {
+	Table           interface{}
+	Where           []Where
+	WhereIn         []Where
+	AllColumns      bool
+	Columns         []string
+	MustColumns     []string
+	OmitColumns     []string
+	NullableColumns []string
+	Increments      []Where
+	Decrements      []Where
+}
+
+func NewUpdateCondition(table interface{}) UpdateCondition {
+	return UpdateCondition{
+		Table: table,
+	}
+}
+
+func (c *UpdateCondition) And(s string, args ...interface{}) {
+	c.Where = append(c.Where, NewWhere(s, args...))
+}
+
+func (c *UpdateCondition) In(s string, args ...interface{}) {
+	c.WhereIn = append(c.WhereIn, NewWhere(s, args...))
+}
+
+func (c *UpdateCondition) AllCols() {
+	c.AllColumns = true
+}
+
+func (c *UpdateCondition) Cols(cols ...string) {
+	c.Columns = append(c.Columns, cols...)
+}
+
+func (c *UpdateCondition) MustCols(cols ...string) {
+	c.MustColumns = append(c.MustColumns, cols...)
+}
+
+func (c *UpdateCondition) Omit(cols ...string) {
+	c.OmitColumns = append(c.OmitColumns, cols...)
+}
+
+func (c *UpdateCondition) Nullable(cols ...string) {
+	c.NullableColumns = append(c.NullableColumns, cols...)
+}
+
+func (c *UpdateCondition) Incr(s string, args ...interface{}) {
+	c.Increments = append(c.Increments, NewWhere(s, args...))
+}
+
+func (c *UpdateCondition) Decr(s string, args ...interface{}) {
+	c.Decrements = append(c.Decrements, NewWhere(s, args...))
 }

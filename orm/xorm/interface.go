@@ -39,6 +39,7 @@ type ORM interface {
 	NewMasterSessionByKey(interface{}, interface{}) (Session, error)
 	NewSlaveSession(interface{}) (Session, error)
 	NewSlaveSessionByKey(interface{}, interface{}) (Session, error)
+	NewAllMasterSessions(interface{}) ([]Session, error)
 
 	ForceNewTransaction(interface{}) (Session, error)
 	Transaction(interface{}) (Session, error)

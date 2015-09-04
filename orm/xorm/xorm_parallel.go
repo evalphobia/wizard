@@ -18,33 +18,6 @@ func (xpr *XormParallel) FindParallel(listPtr interface{}, table interface{}, wh
 	return xpr.FindParallelByCondition(listPtr, cond)
 }
 
-// CreateSessionsWithCondition creates new sessions with conditional clause
-func (xpr *XormParallel) CreateSessionsWithCondition(cond FindCondition) []Session {
-	var sessions []Session
-	slaves := xpr.orm.Slaves(cond.Table)
-	for _, slave := range slaves {
-		s := slave.NewSession()
-		for _, w := range cond.Where {
-			s.And(w.Statement, w.Args...)
-		}
-		for _, in := range cond.WhereIn {
-			s.In(in.Statement, in.Args...)
-		}
-		for _, o := range cond.OrderBy {
-			if o.OrderByDesc {
-				s.Desc(o.Name)
-			} else {
-				s.Asc(o.Name)
-			}
-		}
-		if cond.Limit > 0 {
-			s.Limit(cond.Limit, cond.Offset)
-		}
-		sessions = append(sessions, s)
-	}
-	return sessions
-}
-
 // FindParallelByCondition executes SELECT query to all of the shards with conditions
 func (xpr *XormParallel) FindParallelByCondition(listPtr interface{}, cond FindCondition) error {
 	vt := reflect.TypeOf(listPtr)
@@ -57,7 +30,7 @@ func (xpr *XormParallel) FindParallelByCondition(listPtr interface{}, cond FindC
 	}
 
 	// create session with the condition
-	sessions := xpr.CreateSessionsWithCondition(cond)
+	sessions := xpr.CreateFindSessions(cond)
 	length := len(sessions)
 
 	// execute query
@@ -95,25 +68,20 @@ func (xpr *XormParallel) CountParallelByCondition(objPtr interface{}, cond FindC
 	}
 
 	// create session with the condition
-	sessions := xpr.CreateSessionsWithCondition(cond)
+	sessions := xpr.CreateFindSessions(cond)
 	length := len(sessions)
 
 	// execute query
 	var errList []error
 	results := make(chan int64, length)
 	for _, s := range sessions {
-		var count int64
-		go func(s Session, count int64) {
+		go func(s Session) {
 			count, err := s.Count(objPtr)
 			if err != nil {
 				errList = append(errList, err)
 			}
 			results <- count
-		}(s, count)
-	}
-
-	if len(errList) > 0 {
-		return nil, errors.NewErrParallelQuery(errList)
+		}(s)
 	}
 
 	// wait for the results
@@ -122,6 +90,109 @@ func (xpr *XormParallel) CountParallelByCondition(objPtr interface{}, cond FindC
 		v := <-results
 		counts = append(counts, v)
 	}
+	if len(errList) > 0 {
+		return counts, errors.NewErrParallelQuery(errList)
+	}
 
 	return counts, nil
+}
+
+// CreateFindSessions creates new sessions with conditional clause
+func (xpr *XormParallel) CreateFindSessions(cond FindCondition) []Session {
+	var sessions []Session
+	slaves := xpr.orm.Slaves(cond.Table)
+	for _, slave := range slaves {
+		s := slave.NewSession()
+		for _, w := range cond.Where {
+			s.And(w.Statement, w.Args...)
+		}
+		for _, in := range cond.WhereIn {
+			s.In(in.Statement, in.Args...)
+		}
+		for _, o := range cond.OrderBy {
+			if o.OrderByDesc {
+				s.Desc(o.Name)
+			} else {
+				s.Asc(o.Name)
+			}
+		}
+		if cond.Limit > 0 {
+			s.Limit(cond.Limit, cond.Offset)
+		}
+		sessions = append(sessions, s)
+	}
+	return sessions
+}
+
+// UpdateParallelByCondition executes UPDATE query to all of the shards with conditions
+func (xpr *XormParallel) UpdateParallelByCondition(objPtr interface{}, cond UpdateCondition) (int64, error) {
+	// create session with the condition
+	sessions := xpr.CreateUpdateSessions(cond)
+	length := len(sessions)
+
+	// execute query
+	var errList []error
+	results := make(chan int64, length)
+	for _, s := range sessions {
+		go func(s Session, obj interface{}) {
+			count, err := s.Update(obj)
+			if err != nil {
+				errList = append(errList, err)
+			}
+			results <- count
+		}(s, objPtr)
+	}
+
+	// wait for the results
+	var counts int64
+	for i := 0; i < length; i++ {
+		v := <-results
+		counts += v
+	}
+	if len(errList) > 0 {
+		return counts, errors.NewErrParallelQuery(errList)
+	}
+
+	return counts, nil
+}
+
+// CreateUpdateSessions creates new sessions with conditional clause for UPDATE query
+func (xpr *XormParallel) CreateUpdateSessions(cond UpdateCondition) []Session {
+	var sessions []Session
+	masters := xpr.orm.Masters(cond.Table)
+	for _, master := range masters {
+		s := master.NewSession()
+		for _, w := range cond.Where {
+			s.And(w.Statement, w.Args...)
+		}
+		for _, in := range cond.WhereIn {
+			s.In(in.Statement, in.Args...)
+		}
+
+		if cond.AllColumns {
+			s.AllCols()
+		}
+		for _, col := range cond.Columns {
+			s.Cols(col)
+		}
+		for _, col := range cond.MustColumns {
+			s.MustCols(col)
+		}
+		for _, col := range cond.OmitColumns {
+			s.Omit(col)
+		}
+		for _, col := range cond.NullableColumns {
+			s.Nullable(col)
+		}
+
+		for _, exp := range cond.Increments {
+			s.Incr(exp.Statement, exp.Args...)
+		}
+		for _, exp := range cond.Decrements {
+			s.Decr(exp.Statement, exp.Args...)
+		}
+
+		sessions = append(sessions, s)
+	}
+	return sessions
 }
