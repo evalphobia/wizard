@@ -31,6 +31,7 @@ type ORM interface {
 	FindParallel(interface{}, interface{}, string, ...interface{}) error
 	FindParallelByCondition(interface{}, FindCondition) error
 	CountParallelByCondition(interface{}, FindCondition) ([]int64, error)
+	UpdateParallelByCondition(interface{}, UpdateCondition) (int64, error)
 	GetUsingMaster(interface{}, func(Session) (bool, error)) (bool, error)
 	FindUsingMaster(interface{}, func(Session) error) error
 	CountUsingMaster(interface{}, func(Session) (int64, error)) (int64, error)
