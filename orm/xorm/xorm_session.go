@@ -106,10 +106,13 @@ func (xse *XormSession) addSession(db interface{}, s Session) {
 	xse.sessions[db] = s
 }
 
-// CloseAll closes all of sessions
+// CloseAll closes all of sessions and engines
 func (xse *XormSession) CloseAll() {
-	for _, s := range xse.sessions {
+	for db, s := range xse.sessions {
 		s.Close()
+		if e, ok := db.(Engine); ok {
+			e.Close()
+		}
 	}
 	xse.sessions = make(map[interface{}]Session)
 }
