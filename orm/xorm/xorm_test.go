@@ -137,14 +137,14 @@ func testCreateWizard() *wizard.Wizard {
 }
 
 func countUserMaster(orm *Xorm) int64 {
-	count, _ := orm.CountUsingMaster(&testUser{ID: 1}, func(s Session) (int64, error) {
+	count, _ := orm.CountUsingMaster(testID, &testUser{ID: 1}, func(s Session) (int64, error) {
 		return s.Count(&testUser{})
 	})
 	return count
 }
 
 func countUserMasterB(orm *Xorm) int64 {
-	count, _ := orm.CountUsingMaster(&testUser{ID: 500}, func(s Session) (int64, error) {
+	count, _ := orm.CountUsingMaster(testID, &testUser{ID: 500}, func(s Session) (int64, error) {
 		return s.Count(&testUser{})
 	})
 	return count
@@ -175,52 +175,4 @@ func TestNew(t *testing.T) {
 
 	orm := New(wiz)
 	assert.Equal(wiz, orm.Wiz)
-}
-
-func TestReadOnly(t *testing.T) {
-	assert := assert.New(t)
-	wiz := wizard.NewWizard()
-
-	orm := New(wiz)
-	assert.False(orm.readOnly)
-	orm.ReadOnly(true)
-	assert.True(orm.readOnly)
-	orm.ReadOnly(false)
-	assert.False(orm.readOnly)
-}
-
-func TestIsReadOnly(t *testing.T) {
-	assert := assert.New(t)
-	wiz := wizard.NewWizard()
-
-	orm := New(wiz)
-	assert.False(orm.IsReadOnly())
-	orm.ReadOnly(true)
-	assert.True(orm.IsReadOnly())
-	orm.ReadOnly(false)
-	assert.False(orm.IsReadOnly())
-}
-
-func TestSetAutoTransaction(t *testing.T) {
-	assert := assert.New(t)
-	wiz := wizard.NewWizard()
-
-	orm := New(wiz)
-	assert.False(orm.autoTx)
-	orm.SetAutoTransaction(true)
-	assert.True(orm.autoTx)
-	orm.SetAutoTransaction(false)
-	assert.False(orm.autoTx)
-}
-
-func TestSetIsAutoTransaction(t *testing.T) {
-	assert := assert.New(t)
-	wiz := wizard.NewWizard()
-
-	orm := New(wiz)
-	assert.False(orm.IsAutoTransaction())
-	orm.SetAutoTransaction(true)
-	assert.True(orm.IsAutoTransaction())
-	orm.SetAutoTransaction(false)
-	assert.False(orm.IsAutoTransaction())
 }

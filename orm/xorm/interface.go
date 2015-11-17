@@ -11,10 +11,10 @@ import (
 
 // ORM is wrapper interface for wizard.Xorm
 type ORM interface {
-	ReadOnly(bool)
-	IsReadOnly() bool
-	SetAutoTransaction(bool)
-	IsAutoTransaction() bool
+	ReadOnly(Identifier, bool)
+	IsReadOnly(Identifier) bool
+	SetAutoTransaction(Identifier, bool)
+	IsAutoTransaction(Identifier) bool
 
 	Master(interface{}) Engine
 	MasterByKey(interface{}, interface{}) Engine
@@ -26,29 +26,31 @@ type ORM interface {
 	Get(interface{}, func(Session) (bool, error)) (bool, error)
 	Find(interface{}, func(Session) error) error
 	Count(interface{}, func(Session) (int64, error)) (int64, error)
-	Insert(interface{}, func(Session) (int64, error)) (int64, error)
-	Update(interface{}, func(Session) (int64, error)) (int64, error)
+	Insert(Identifier, interface{}, func(Session) (int64, error)) (int64, error)
+	Update(Identifier, interface{}, func(Session) (int64, error)) (int64, error)
 	FindParallel(interface{}, interface{}, string, ...interface{}) error
 	FindParallelByCondition(interface{}, FindCondition) error
 	CountParallelByCondition(interface{}, FindCondition) ([]int64, error)
 	UpdateParallelByCondition(interface{}, UpdateCondition) (int64, error)
-	GetUsingMaster(interface{}, func(Session) (bool, error)) (bool, error)
-	FindUsingMaster(interface{}, func(Session) error) error
-	CountUsingMaster(interface{}, func(Session) (int64, error)) (int64, error)
+	GetUsingMaster(Identifier, interface{}, func(Session) (bool, error)) (bool, error)
+	FindUsingMaster(Identifier, interface{}, func(Session) error) error
+	CountUsingMaster(Identifier, interface{}, func(Session) (int64, error)) (int64, error)
 
 	NewMasterSession(interface{}) (Session, error)
-	NewMasterSessionByKey(interface{}, interface{}) (Session, error)
-	NewSlaveSession(interface{}) (Session, error)
-	NewSlaveSessionByKey(interface{}, interface{}) (Session, error)
-	NewAllMasterSessions(interface{}) ([]Session, error)
+
+	UseMasterSession(Identifier, interface{}) (Session, error)
+	UseMasterSessionByKey(Identifier, interface{}, interface{}) (Session, error)
+	UseSlaveSession(Identifier, interface{}) (Session, error)
+	UseSlaveSessionByKey(Identifier, interface{}, interface{}) (Session, error)
+	UseAllMasterSessions(Identifier, interface{}) ([]Session, error)
 
 	ForceNewTransaction(interface{}) (Session, error)
-	Transaction(interface{}) (Session, error)
-	TransactionByKey(interface{}, interface{}) (Session, error)
-	AutoTransaction(interface{}, Session) error
-	CommitAll() error
-	RollbackAll() error
-	CloseAll()
+	Transaction(Identifier, interface{}) (Session, error)
+	TransactionByKey(Identifier, interface{}, interface{}) (Session, error)
+	AutoTransaction(Identifier, interface{}, Session) error
+	CommitAll(Identifier) error
+	RollbackAll(Identifier) error
+	CloseList(Identifier)
 }
 
 // Session is interface for xorm.Session

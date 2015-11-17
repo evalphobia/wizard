@@ -37,12 +37,12 @@ func (xfn XormFunction) Count(obj interface{}, fn func(Session) (int64, error)) 
 }
 
 // Insert executes xorm.Sessions.Insert() in master db
-func (xfn XormFunction) Insert(obj interface{}, fn func(Session) (int64, error)) (int64, error) {
-	if xfn.orm.IsReadOnly() {
+func (xfn XormFunction) Insert(id Identifier, obj interface{}, fn func(Session) (int64, error)) (int64, error) {
+	if xfn.orm.IsReadOnly(id) {
 		return 0, nil
 	}
 
-	s, err := xfn.orm.NewMasterSession(obj)
+	s, err := xfn.orm.UseMasterSession(id, obj)
 	if err != nil {
 		return 0, err
 	}
@@ -50,12 +50,12 @@ func (xfn XormFunction) Insert(obj interface{}, fn func(Session) (int64, error))
 }
 
 // Update executes xorm.Sessions.Update() in master db
-func (xfn XormFunction) Update(obj interface{}, fn func(Session) (int64, error)) (int64, error) {
-	if xfn.orm.IsReadOnly() {
+func (xfn XormFunction) Update(id Identifier, obj interface{}, fn func(Session) (int64, error)) (int64, error) {
+	if xfn.orm.IsReadOnly(id) {
 		return 0, nil
 	}
 
-	s, err := xfn.orm.NewMasterSession(obj)
+	s, err := xfn.orm.UseMasterSession(id, obj)
 	if err != nil {
 		return 0, err
 	}
@@ -63,8 +63,8 @@ func (xfn XormFunction) Update(obj interface{}, fn func(Session) (int64, error))
 }
 
 // GetUsingMaster executes xorm.Sessions.Get() in master db
-func (xfn XormFunction) GetUsingMaster(obj interface{}, fn func(Session) (bool, error)) (bool, error) {
-	s, err := xfn.orm.NewMasterSession(obj)
+func (xfn XormFunction) GetUsingMaster(id Identifier, obj interface{}, fn func(Session) (bool, error)) (bool, error) {
+	s, err := xfn.orm.UseMasterSession(id, obj)
 	if err != nil {
 		return false, err
 	}
@@ -72,8 +72,8 @@ func (xfn XormFunction) GetUsingMaster(obj interface{}, fn func(Session) (bool, 
 }
 
 // FindUsingMaster executes xorm.Sessions.Find() in master db
-func (xfn XormFunction) FindUsingMaster(obj interface{}, fn func(Session) error) error {
-	s, err := xfn.orm.NewMasterSession(obj)
+func (xfn XormFunction) FindUsingMaster(id Identifier, obj interface{}, fn func(Session) error) error {
+	s, err := xfn.orm.UseMasterSession(id, obj)
 	if err != nil {
 		return err
 	}
@@ -81,8 +81,8 @@ func (xfn XormFunction) FindUsingMaster(obj interface{}, fn func(Session) error)
 }
 
 // CountUsingMaster executes xorm.Sessions.Count() in master db
-func (xfn XormFunction) CountUsingMaster(obj interface{}, fn func(Session) (int64, error)) (int64, error) {
-	s, err := xfn.orm.NewMasterSession(obj)
+func (xfn XormFunction) CountUsingMaster(id Identifier, obj interface{}, fn func(Session) (int64, error)) (int64, error) {
+	s, err := xfn.orm.UseMasterSession(id, obj)
 	if err != nil {
 		return 0, err
 	}

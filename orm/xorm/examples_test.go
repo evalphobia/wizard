@@ -73,8 +73,8 @@ func ExampleInsert() {
 	orm := New(w)
 
 	user := &User{ID: 99, Name: "Adam Smith"}
-	total, err := orm.Insert(user, func(s Session) (int64, error) {
-		return s.Insert(user)
+	total, err := orm.Insert(testID, user, func(s Session) (int64, error) {
+		return s.Insert(testID, user)
 	})
 	if err != nil {
 		fmt.Printf("error occured, %s", err.Error())
@@ -93,20 +93,20 @@ func ExampleTransaction() {
 	user1 := &User{ID: 1, Name: "Adam Smith"}
 	user2 := &User{ID: 2, Name: "Benjamin Franklin"}
 
-	s1, _ := orm.Transaction(user1)
-	s2, _ := orm.Transaction(user2)
+	s1, _ := orm.Transaction(testID, user1)
+	s2, _ := orm.Transaction(testID, user2)
 
 	_, err = s1.Insert(user1)
 	if err != nil {
-		orm.RollbackAll()
+		orm.RollbackAll(testID)
 		return
 	}
 	_, err = s2.Insert(user2)
 	if err != nil {
-		orm.RollbackAll()
+		orm.RollbackAll(testID)
 		return
 	}
-	orm.CommitAll()
+	orm.CommitAll(testID)
 }
 
 func ExampleTransactionAuto() {
@@ -116,20 +116,20 @@ func ExampleTransactionAuto() {
 	user1 := &User{ID: 1, Name: "Adam Smith"}
 	user2 := &User{ID: 2, Name: "Benjamin Franklin"}
 
-	orm.SetAutoTransaction(true)
-	_, err = orm.Insert(user1, func(s Session) (int64, error) {
+	orm.SetAutoTransaction(testID, true)
+	_, err = orm.Insert(testID, user1, func(s Session) (int64, error) {
 		return s.Insert(user1)
 	})
 	if err != nil {
-		orm.RollbackAll()
+		orm.RollbackAll(testID)
 		return
 	}
-	_, err = orm.Insert(user2, func(s Session) (int64, error) {
+	_, err = orm.Insert(testID, user2, func(s Session) (int64, error) {
 		return s.Insert(user2)
 	})
 	if err != nil {
-		orm.RollbackAll()
+		orm.RollbackAll(testID)
 		return
 	}
-	orm.CommitAll()
+	orm.CommitAll(testID)
 }

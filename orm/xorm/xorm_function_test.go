@@ -170,7 +170,7 @@ func TestInsert(t *testing.T) {
 	// user A
 	assert.EqualValues(3, countFn(testUser{ID: 1}, &testUser{}))
 	row = &testUser{ID: 1000, Name: "Daniel"}
-	affected, err = orm.Insert(row, fn)
+	affected, err = orm.Insert(testID, row, fn)
 	assert.Nil(err)
 	assert.Equal(success, affected)
 	assert.EqualValues(4, countFn(testUser{ID: 1}, &testUser{}))
@@ -184,7 +184,7 @@ func TestInsert(t *testing.T) {
 	// user B
 	assert.EqualValues(3, countFn(testUser{ID: 500}, &testUser{}))
 	row = &testUser{ID: 1500, Name: "Dorothy"}
-	affected, err = orm.Insert(row, fn)
+	affected, err = orm.Insert(testID, row, fn)
 	assert.Nil(err)
 	assert.Equal(success, affected)
 	assert.EqualValues(4, countFn(testUser{ID: 500}, &testUser{}))
@@ -198,7 +198,7 @@ func TestInsert(t *testing.T) {
 	// foobar
 	assert.EqualValues(3, countFn(testFoobar{}, &testFoobar{}))
 	row = &testFoobar{ID: 4, Name: "foobar#4"}
-	affected, err = orm.Insert(row, fn)
+	affected, err = orm.Insert(testID, row, fn)
 	assert.Nil(err)
 	assert.Equal(success, affected)
 	assert.EqualValues(4, countFn(testFoobar{}, &testFoobar{}))
@@ -212,7 +212,7 @@ func TestInsert(t *testing.T) {
 	// other
 	assert.EqualValues(3, countFn(testCompany{}, &testCompany{}))
 	row = &testCompany{ID: 4, Name: "Delta Air Lines"}
-	affected, err = orm.Insert(row, fn)
+	affected, err = orm.Insert(testID, row, fn)
 	assert.Nil(err)
 	assert.Equal(success, affected)
 	assert.EqualValues(4, countFn(testCompany{}, &testCompany{}))
@@ -230,7 +230,7 @@ func TestInsert(t *testing.T) {
 		{ID: 6, Name: "Facebook"},
 		{ID: 7, Name: "Google"},
 	}
-	affected, err = orm.Insert(testCompany{}, func(s Session) (int64, error) {
+	affected, err = orm.Insert(testID, testCompany{}, func(s Session) (int64, error) {
 		return s.Insert(&rows)
 	})
 	assert.Nil(err)
@@ -240,8 +240,8 @@ func TestInsert(t *testing.T) {
 	testWaitForIO()
 
 	// readonly
-	orm.ReadOnly(true)
-	affected, err = orm.Insert(row, fn)
+	orm.ReadOnly(testID, true)
+	affected, err = orm.Insert(testID, row, fn)
 	assert.Nil(err)
 	assert.EqualValues(0, affected)
 
@@ -264,7 +264,7 @@ func TestUpdate(t *testing.T) {
 	// user A
 	var user *testUser
 	user = &testUser{ID: 1, Name: "Akira"}
-	affected, err = orm.Update(user, func(s Session) (int64, error) {
+	affected, err = orm.Update(testID, user, func(s Session) (int64, error) {
 		s.Where("id = ?", user.ID)
 		return s.Update(user)
 	})
@@ -277,7 +277,7 @@ func TestUpdate(t *testing.T) {
 
 	// // user B
 	user = &testUser{ID: 501, Name: "Aiko"}
-	affected, err = orm.Update(user, func(s Session) (int64, error) {
+	affected, err = orm.Update(testID, user, func(s Session) (int64, error) {
 		s.Where("id = ?", user.ID)
 		return s.Update(user)
 	})
@@ -291,7 +291,7 @@ func TestUpdate(t *testing.T) {
 	// foobar
 	var foobar *testFoobar
 	foobar = &testFoobar{ID: 1, Name: "foobar#1b"}
-	affected, err = orm.Update(foobar, func(s Session) (int64, error) {
+	affected, err = orm.Update(testID, foobar, func(s Session) (int64, error) {
 		s.Where("id = ?", foobar.ID)
 		return s.Update(foobar)
 	})
@@ -305,7 +305,7 @@ func TestUpdate(t *testing.T) {
 	// other
 	var company *testCompany
 	company = &testCompany{ID: 1, Name: "Alibaba"}
-	affected, err = orm.Update(company, func(s Session) (int64, error) {
+	affected, err = orm.Update(testID, company, func(s Session) (int64, error) {
 		s.Where("id = ?", company.ID)
 		return s.Update(company)
 	})
@@ -318,7 +318,7 @@ func TestUpdate(t *testing.T) {
 
 	// multiple rows
 	foobar = &testFoobar{Name: "foobar#XXX"}
-	affected, err = orm.Update(foobar, func(s Session) (int64, error) {
+	affected, err = orm.Update(testID, foobar, func(s Session) (int64, error) {
 		return s.Update(foobar)
 	})
 	assert.Nil(err)
@@ -335,8 +335,8 @@ func TestUpdate(t *testing.T) {
 	assert.Equal("foobar#XXX", row.(*testFoobar).Name)
 
 	// readonly
-	orm.ReadOnly(true)
-	affected, err = orm.Update(foobar, func(s Session) (int64, error) {
+	orm.ReadOnly(testID, true)
+	affected, err = orm.Update(testID, foobar, func(s Session) (int64, error) {
 		return s.Update(foobar)
 	})
 	assert.Nil(err)
@@ -357,10 +357,10 @@ func TestGetUsingMaster(t *testing.T) {
 		return s.Get(row)
 	}
 
-	orm.SetAutoTransaction(true)
+	orm.SetAutoTransaction(testID, true)
 
 	row = &testUser{ID: 4}
-	s, _ := orm.Transaction(row)
+	s, _ := orm.Transaction(testID, row)
 	s.Insert(row)
 
 	// slave
@@ -369,7 +369,7 @@ func TestGetUsingMaster(t *testing.T) {
 	assert.False(has)
 
 	// master
-	has, err = orm.GetUsingMaster(row, fn)
+	has, err = orm.GetUsingMaster(testID, row, fn)
 	assert.Nil(err)
 	assert.True(has)
 
@@ -387,10 +387,10 @@ func TestFindUsingMaster(t *testing.T) {
 		return s.Find(&foobars)
 	}
 
-	orm.SetAutoTransaction(true)
+	orm.SetAutoTransaction(testID, true)
 
 	row := &testFoobar{ID: 4, Name: "foobar#4@FindUsingMaster"}
-	s, _ := orm.Transaction(row)
+	s, _ := orm.Transaction(testID, row)
 	s.Insert(row)
 
 	// slave
@@ -400,7 +400,7 @@ func TestFindUsingMaster(t *testing.T) {
 
 	// master
 	foobars = foobars[:0]
-	err = orm.FindUsingMaster(testFoobar{}, fn)
+	err = orm.FindUsingMaster(testID, testFoobar{}, fn)
 	assert.Nil(err)
 	assert.Len(foobars, 4)
 
@@ -419,17 +419,17 @@ func TestCountUsingMaster(t *testing.T) {
 		return s.Count(&foobar)
 	}
 
-	orm.SetAutoTransaction(true)
+	orm.SetAutoTransaction(testID, true)
 
 	row := &testFoobar{ID: 4, Name: "foobar#4@CountUsingMaster"}
-	s, _ := orm.Transaction(row)
+	s, _ := orm.Transaction(testID, row)
 	s.Insert(row)
 
 	count, err = orm.Count(foobar, fn)
 	assert.Nil(err)
 	assert.EqualValues(3, count)
 
-	count, err = orm.CountUsingMaster(foobar, fn)
+	count, err = orm.CountUsingMaster(testID, foobar, fn)
 	assert.Nil(err)
 	assert.EqualValues(4, count)
 
@@ -464,26 +464,26 @@ func TestFunctionNilDB(t *testing.T) {
 	assert.EqualValues(0, count)
 
 	// GetUsingMaster
-	has, err = orm.GetUsingMaster(testFoobar{}, fnGet)
+	has, err = orm.GetUsingMaster(testID, testFoobar{}, fnGet)
 	assert.NotNil(err)
 	assert.False(has)
 
 	// FindUsingMaster
-	err = orm.FindUsingMaster(testFoobar{}, fnFind)
+	err = orm.FindUsingMaster(testID, testFoobar{}, fnFind)
 	assert.NotNil(err)
 
 	// CountUsingMaster
-	count, err = orm.CountUsingMaster(testFoobar{}, fnCount)
+	count, err = orm.CountUsingMaster(testID, testFoobar{}, fnCount)
 	assert.NotNil(err)
 	assert.EqualValues(0, count)
 
 	// Insert
-	affected, err = orm.Insert(testFoobar{}, fnCount)
+	affected, err = orm.Insert(testID, testFoobar{}, fnCount)
 	assert.NotNil(err)
 	assert.EqualValues(0, affected)
 
 	// nil db
-	affected, err = orm.Update(testFoobar{}, fnCount)
+	affected, err = orm.Update(testID, testFoobar{}, fnCount)
 	assert.NotNil(err)
 	assert.EqualValues(0, affected)
 }
