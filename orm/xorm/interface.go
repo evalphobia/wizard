@@ -50,7 +50,7 @@ type ORM interface {
 	AutoTransaction(Identifier, interface{}, Session) error
 	CommitAll(Identifier) error
 	RollbackAll(Identifier) error
-	CloseList(Identifier)
+	CloseAll(Identifier)
 }
 
 // Session is interface for xorm.Session

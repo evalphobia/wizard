@@ -149,8 +149,8 @@ func (xse *XormSessionManager) addSessionIntoList(id Identifier, db interface{},
 	sl.addSession(db, s)
 }
 
-// CloseList closes all of sessions and engines
-func (xse *XormSessionManager) CloseList(id Identifier) {
+// CloseAll closes all of sessions and engines
+func (xse *XormSessionManager) CloseAll(id Identifier) {
 	sl := xse.getOrCreateSessionList(id)
 
 	for _, s := range sl.getSessions() {
