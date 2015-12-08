@@ -160,9 +160,14 @@ func (xse *XormSessionManager) CloseAll(id Identifier) {
 		s.Close()
 	}
 	sl.clearSessions()
+	sl.clearTransactions()
+	delete(xse.list, id)
 }
 
 func (xse *XormSessionManager) newSessionList(id Identifier) *SessionList {
+	if xse.list == nil {
+		xse.list = make(map[Identifier]*SessionList)
+	}
 	xse.list[id] = newSessionList()
 	return xse.list[id]
 }
