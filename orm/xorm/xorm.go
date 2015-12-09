@@ -1,6 +1,7 @@
 package xorm
 
 import (
+	"sync"
 	"github.com/evalphobia/wizard"
 )
 
@@ -22,6 +23,7 @@ func New(wiz *wizard.Wizard) *Xorm {
 	orm.XormWizard = &XormWizard{wiz}
 	orm.XormSessionManager = &XormSessionManager{
 		orm:  orm,
+		lock: sync.RWMutex{},
 		list: make(map[Identifier]*SessionList),
 	}
 	orm.XormParallel = &XormParallel{orm: orm}

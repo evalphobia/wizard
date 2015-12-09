@@ -1,12 +1,14 @@
 package xorm
 
 import (
+	"sync"
 	"github.com/evalphobia/wizard/errors"
 )
 
 // XormSessionManager manages database session list for xorm
 type XormSessionManager struct {
 	orm  *Xorm
+	lock sync.RWMutex
 	list map[Identifier]*SessionList
 }
 
@@ -145,12 +147,16 @@ func (xse *XormSessionManager) getSessionFromList(id Identifier, db interface{})
 
 // addSessionIntoList saves the session for the db
 func (xse *XormSessionManager) addSessionIntoList(id Identifier, db interface{}, s Session) {
+	xse.lock.Lock()
+	defer xse.lock.Unlock()
 	sl := xse.getOrCreateSessionList(id)
 	sl.addSession(db, s)
 }
 
 // CloseAll closes all of sessions and engines
 func (xse *XormSessionManager) CloseAll(id Identifier) {
+	xse.lock.Lock()
+	defer xse.lock.Unlock()
 	sl := xse.getOrCreateSessionList(id)
 
 	for _, s := range sl.getSessions() {
