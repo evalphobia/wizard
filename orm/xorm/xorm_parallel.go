@@ -101,13 +101,24 @@ func (xpr *XormParallel) CountParallelByCondition(objPtr interface{}, cond FindC
 func (xpr *XormParallel) CreateFindSessions(cond FindCondition) []Session {
 	var sessions []Session
 	slaves := xpr.orm.Slaves(cond.Table)
+
 	for _, slave := range slaves {
 		s := slave.NewSession()
+		if len(cond.Columns) != 0 {
+			s.Cols(cond.Columns...)
+		}
+		if cond.Selects != "" {
+			s.Select(cond.Selects)
+		}
+
 		for _, w := range cond.Where {
 			s.And(w.Statement, w.Args...)
 		}
 		for _, in := range cond.WhereIn {
 			s.In(in.Statement, in.Args...)
+		}
+		for _, group := range cond.Group {
+			s.GroupBy(group)
 		}
 		for _, o := range cond.OrderBy {
 			if o.OrderByDesc {

@@ -20,8 +20,11 @@ type Order struct {
 // FindCondition is conditions for FindParallel
 type FindCondition struct {
 	Table   interface{}
+	Columns []string
+	Selects string
 	Where   []Where
 	WhereIn []Where
+	Group   []string
 	OrderBy []Order
 	Limit   int
 	Offset  int
@@ -33,12 +36,24 @@ func NewFindCondition(table interface{}) FindCondition {
 	}
 }
 
+func (c *FindCondition) Cols(cols ...string) {
+	c.Columns = append(c.Columns, cols...)
+}
+
+func (c *FindCondition) Select(str string) {
+	c.Selects = str
+}
+
 func (c *FindCondition) And(s string, args ...interface{}) {
 	c.Where = append(c.Where, NewWhere(s, args...))
 }
 
 func (c *FindCondition) In(s string, args ...interface{}) {
 	c.WhereIn = append(c.WhereIn, NewWhere(s, args...))
+}
+
+func (c *FindCondition) GroupBy(s ...string) {
+	c.Group = append(c.Group, s...)
 }
 
 func (c *FindCondition) OrderByAsc(s string) {
