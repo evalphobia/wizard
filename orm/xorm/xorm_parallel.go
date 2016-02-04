@@ -39,7 +39,7 @@ func (xpr *XormParallel) FindParallelByCondition(listPtr interface{}, cond FindC
 	for _, s := range sessions {
 		list := reflect.New(elem)
 		go func(s Session, list reflect.Value) {
-			s.Close()
+			defer s.Close()
 			err := s.Find(list.Interface())
 			if err != nil {
 				errList = append(errList, err)
@@ -77,7 +77,7 @@ func (xpr *XormParallel) CountParallelByCondition(objPtr interface{}, cond FindC
 	results := make(chan int64, length)
 	for _, s := range sessions {
 		go func(s Session) {
-			s.Close()
+			defer s.Close()
 			count, err := s.Count(objPtr)
 			if err != nil {
 				errList = append(errList, err)
@@ -148,7 +148,7 @@ func (xpr *XormParallel) UpdateParallelByCondition(objPtr interface{}, cond Upda
 	results := make(chan int64, length)
 	for _, s := range sessions {
 		go func(s Session, obj interface{}) {
-			s.Close()
+			defer s.Close()
 			count, err := s.Update(obj)
 			if err != nil {
 				errList = append(errList, err)
