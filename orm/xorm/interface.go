@@ -134,6 +134,7 @@ type Engine interface {
 	SetMaxIdleConns(int)
 	NoCache() *xorm.Session
 	NoCascade() *xorm.Session
+	SetLogger(core.ILogger)
 
 	NewSession() *xorm.Session
 	Close() error
