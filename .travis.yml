@@ -1,0 +1,21 @@
+sudo: false
+language: go
+go:
+  - 1.5
+  - tip
+matrix:
+  allow_failures:
+    - go: tip
+before_install:
+  - if ! go get github.com/golang/tools/cmd/cover; then go get golang.org/x/tools/cmd/cover; fi
+  - go get github.com/golang/lint/golint
+  - go get github.com/modocache/gover
+  - go get -d github.com/stretchr/testify/assert github.com/go-sql-driver/mysql github.com/mattn/go-sqlite3
+before_script:
+  - go vet ./...
+  - gofmt -s -l .
+script:
+  - go list -f '{{if len .TestGoFiles}}"go test -coverprofile={{.Dir}}/.coverprofile {{.ImportPath}}"{{end}}' ./... | xargs -I{} sh -c '{}'
+  - gover . coverprofile.txt
+after_success:
+  - bash <(curl -s https://codecov.io/bash) -f coverprofile.txt
