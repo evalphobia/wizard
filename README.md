@@ -1,10 +1,7 @@
-[![Build Status](https://drone.io/github.com/evalphobia/wizard/status.png)](https://drone.io/github.com/evalphobia/wizard/latest)
-
-[![Coverage Status](https://coveralls.io/repos/evalphobia/wizard/badge.svg?branch=master&service=github)](https://coveralls.io/github/evalphobia/wizard?branch=master)
-
-# Wizard
-
-[![Join the chat at https://gitter.im/evalphobia/wizard](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/evalphobia/wizard?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+Wizard
+====
+[![Build Status](https://travis-ci.org/evalphobia/wizard.svg?branch=master)](https://travis-ci.org/evalphobia/wizard) [![codecov.io](https://codecov.io/github/evalphobia/wizard/coverage.svg?branch=master)](https://codecov.io/github/evalphobia/wizard?branch=master)
+ [![GoDoc](https://godoc.org/github.com/evalphobia/wizard?status.svg)](https://godoc.org/github.com/evalphobia/wizard) [![Join the chat at https://gitter.im/evalphobia/wizard](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/evalphobia/wizard?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Wizard is database/sql management library for multi instance and sharding in golang.  
 Inspired by [MixedGauge](https://github.com/taiki45/mixed_gauge)

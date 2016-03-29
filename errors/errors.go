@@ -46,11 +46,11 @@ func NewErrSlotSizeMax(max, slot int64) Err {
 }
 
 func NewErrSlotMinOverlapped(size int64) Err {
-	return Err{Code: 11004, Info: fmt.Sprintf("minimun slot size is overlapped, value=%s", size)}
+	return Err{Code: 11004, Info: fmt.Sprintf("minimun slot size is overlapped, value=%d", size)}
 }
 
 func NewErrSlotMaxOverlapped(size int64) Err {
-	return Err{Code: 11005, Info: fmt.Sprintf("maximun slot size is overlapped, value=%s", size)}
+	return Err{Code: 11005, Info: fmt.Sprintf("maximun slot size is overlapped, value=%d", size)}
 }
 
 func NewErrNoSession(name interface{}) Err {
