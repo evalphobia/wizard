@@ -2,6 +2,7 @@ package xorm
 
 import (
 	"sync"
+
 	"github.com/evalphobia/wizard"
 )
 
