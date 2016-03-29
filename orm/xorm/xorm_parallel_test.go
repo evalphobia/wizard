@@ -86,6 +86,6 @@ func TestCountParallelByCondition(t *testing.T) {
 	counts, err := orm.CountParallelByCondition(&testObj, cond)
 	assert.Nil(err)
 	assert.Len(counts, 2)
-	assert.Equal(counts[0], int64(2))
-	assert.Equal(counts[1], int64(3))
+	assert.Equal(counts[0], int64(3))
+	assert.Equal(counts[1], int64(2))
 }

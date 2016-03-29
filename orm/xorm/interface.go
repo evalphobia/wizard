@@ -82,7 +82,7 @@ type Session interface {
 	OrderBy(string) *xorm.Session
 	Desc(...string) *xorm.Session
 	Asc(...string) *xorm.Session
-	Join(string, interface{}, string) *xorm.Session
+	Join(string, interface{}, string, ...interface{}) *xorm.Session
 	GroupBy(string) *xorm.Session
 	Having(string) *xorm.Session
 
@@ -130,7 +130,6 @@ type Engine interface {
 	Quote(string) string
 	AutoIncrStr() string
 	SetMaxOpenConns(int)
-	SetMaxConns(int)
 	SetMaxIdleConns(int)
 	NoCache() *xorm.Session
 	NoCascade() *xorm.Session
@@ -171,7 +170,7 @@ type Engine interface {
 	Desc(...string) *xorm.Session
 	Asc(...string) *xorm.Session
 	OrderBy(string) *xorm.Session
-	Join(string, interface{}, string) *xorm.Session
+	Join(string, interface{}, string, ...interface{}) *xorm.Session
 	GroupBy(string) *xorm.Session
 	Having(string) *xorm.Session
 
