@@ -66,8 +66,6 @@ func (xse *XormSessionManager) getTransactionFromList(id Identifier, db interfac
 
 // addTransactionIntoList saves the session with transaction for the db
 func (xse *XormSessionManager) addTransactionIntoList(id Identifier, db interface{}, s Session) {
-	xse.lock.Lock()
-	defer xse.lock.Unlock()
 	sl := xse.getOrCreateSessionList(id)
 	sl.addTransaction(db, s)
 }
@@ -100,8 +98,6 @@ func (xse *XormSessionManager) AutoTransaction(id Identifier, obj interface{}, s
 
 // CommitAll commits all of transactions
 func (xse *XormSessionManager) CommitAll(id Identifier) error {
-	xse.lock.Lock()
-	defer xse.lock.Unlock()
 	if !xse.hasSessionList(id) {
 		return nil
 	}
@@ -132,8 +128,6 @@ func (xse *XormSessionManager) CommitAll(id Identifier) error {
 
 // RollbackAll aborts all of transactions
 func (xse *XormSessionManager) RollbackAll(id Identifier) error {
-	xse.lock.Lock()
-	defer xse.lock.Unlock()
 	if !xse.hasSessionList(id) {
 		return nil
 	}
