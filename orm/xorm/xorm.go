@@ -1,10 +1,6 @@
 package xorm
 
-import (
-	"sync"
-
-	"github.com/evalphobia/wizard"
-)
+import "github.com/evalphobia/wizard"
 
 // Xorm manages database sessions for xorm
 type Xorm struct {
@@ -24,7 +20,6 @@ func New(wiz *wizard.Wizard) *Xorm {
 	orm.XormWizard = &XormWizard{wiz}
 	orm.XormSessionManager = &XormSessionManager{
 		orm:  orm,
-		lock: sync.RWMutex{},
 		list: make(map[Identifier]*SessionList),
 	}
 	orm.XormParallel = &XormParallel{orm: orm}
