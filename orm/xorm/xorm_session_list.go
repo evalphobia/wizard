@@ -1,14 +1,16 @@
 package xorm
 
-import (
-// "github.com/evalphobia/wizard/errors"
-)
+import "sync"
 
+// SessionList contains db sessions list for one group
 type SessionList struct {
 	readOnly bool
 	autoTx   bool
 
-	sessions     map[interface{}]Session
+	sessMu   sync.RWMutex
+	sessions map[interface{}]Session
+
+	txMu         sync.RWMutex
 	transactions map[interface{}]Session
 }
 
@@ -20,15 +22,21 @@ func newSessionList() *SessionList {
 }
 
 func (l *SessionList) hasSession(db interface{}) bool {
+	l.sessMu.RLock()
+	defer l.sessMu.RUnlock()
 	_, ok := l.sessions[db]
 	return ok
 }
 
 func (l *SessionList) getSession(db interface{}) Session {
+	l.sessMu.RLock()
+	defer l.sessMu.RUnlock()
 	return l.sessions[db]
 }
 
 func (l *SessionList) addSession(db interface{}, s Session) {
+	l.sessMu.Lock()
+	defer l.sessMu.Unlock()
 	l.sessions[db] = s
 }
 
@@ -37,14 +45,20 @@ func (l *SessionList) getSessions() map[interface{}]Session {
 }
 
 func (l *SessionList) clearSessions() {
+	l.sessMu.Lock()
+	defer l.sessMu.Unlock()
 	l.sessions = make(map[interface{}]Session)
 }
 
 func (l *SessionList) getTransaction(db interface{}) Session {
+	l.txMu.RLock()
+	defer l.txMu.RUnlock()
 	return l.transactions[db]
 }
 
 func (l *SessionList) addTransaction(db interface{}, s Session) {
+	l.txMu.Lock()
+	defer l.txMu.Unlock()
 	l.transactions[db] = s
 }
 
@@ -53,6 +67,8 @@ func (l *SessionList) getTransactions() map[interface{}]Session {
 }
 
 func (l *SessionList) clearTransactions() {
+	l.txMu.Lock()
+	defer l.txMu.Unlock()
 	l.transactions = make(map[interface{}]Session)
 }
 

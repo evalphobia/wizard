@@ -8,9 +8,9 @@ import (
 
 // XormSessionManager manages database session list for xorm
 type XormSessionManager struct {
-	orm  *Xorm
-	lock sync.RWMutex
-	list map[Identifier]*SessionList
+	orm    *Xorm
+	listMu sync.RWMutex
+	list   map[Identifier]*SessionList
 }
 
 // Identifier is unique object for using same sessions
@@ -24,21 +24,25 @@ func newSession(db Engine, obj interface{}) (Session, error) {
 	return db.NewSession(), nil
 }
 
+// SetAutoTransaction sets auto transaction flag of the SessionList
 func (xse *XormSessionManager) SetAutoTransaction(id Identifier, b bool) {
 	sl := xse.getOrCreateSessionList(id)
 	sl.SetAutoTransaction(b)
 }
 
+// IsAutoTransaction checks auto transaction flag of the SessionList
 func (xse *XormSessionManager) IsAutoTransaction(id Identifier) bool {
 	sl := xse.getOrCreateSessionList(id)
 	return sl.IsAutoTransaction()
 }
 
+// ReadOnly changes readonly flag of the SessionList
 func (xse *XormSessionManager) ReadOnly(id Identifier, b bool) {
 	sl := xse.getOrCreateSessionList(id)
 	sl.ReadOnly(b)
 }
 
+// IsReadOnly returns readonly flag of the SesionList
 func (xse *XormSessionManager) IsReadOnly(id Identifier) bool {
 	sl := xse.getOrCreateSessionList(id)
 	return sl.IsReadOnly()
@@ -54,7 +58,7 @@ func (xse *XormSessionManager) NewMasterSession(obj interface{}) (Session, error
 	return db.NewSession(), nil
 }
 
-// NewMasterSession returns new master session for the db of given object
+// UseMasterSession returns new master session for the db of given object
 func (xse *XormSessionManager) UseMasterSession(id Identifier, obj interface{}) (Session, error) {
 	db := xse.orm.Master(obj)
 	sl := xse.getOrCreateSessionList(id)
@@ -148,16 +152,12 @@ func (xse *XormSessionManager) getSessionFromList(id Identifier, db interface{})
 
 // addSessionIntoList saves the session for the db
 func (xse *XormSessionManager) addSessionIntoList(id Identifier, db interface{}, s Session) {
-	xse.lock.Lock()
-	defer xse.lock.Unlock()
 	sl := xse.getOrCreateSessionList(id)
 	sl.addSession(db, s)
 }
 
 // CloseAll closes all of sessions and engines
 func (xse *XormSessionManager) CloseAll(id Identifier) {
-	xse.lock.Lock()
-	defer xse.lock.Unlock()
 	sl := xse.getOrCreateSessionList(id)
 
 	for _, s := range sl.getSessions() {
@@ -168,10 +168,16 @@ func (xse *XormSessionManager) CloseAll(id Identifier) {
 	}
 	sl.clearSessions()
 	sl.clearTransactions()
+
+	xse.listMu.Lock()
+	defer xse.listMu.Unlock()
 	delete(xse.list, id)
 }
 
 func (xse *XormSessionManager) newSessionList(id Identifier) *SessionList {
+	xse.listMu.Lock()
+	defer xse.listMu.Unlock()
+
 	if xse.list == nil {
 		xse.list = make(map[Identifier]*SessionList)
 	}
@@ -180,6 +186,9 @@ func (xse *XormSessionManager) newSessionList(id Identifier) *SessionList {
 }
 
 func (xse *XormSessionManager) hasSessionList(id Identifier) bool {
+	xse.listMu.RLock()
+	defer xse.listMu.RUnlock()
+
 	_, ok := xse.list[id]
 	return ok
 }
@@ -188,5 +197,8 @@ func (xse *XormSessionManager) getOrCreateSessionList(id Identifier) *SessionLis
 	if !xse.hasSessionList(id) {
 		xse.newSessionList(id)
 	}
+
+	xse.listMu.RLock()
+	defer xse.listMu.RUnlock()
 	return xse.list[id]
 }
