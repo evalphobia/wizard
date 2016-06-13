@@ -25,6 +25,7 @@ type FindCondition struct {
 	Where   []Where
 	WhereIn []Where
 	Group   []string
+	Havings []string
 	OrderBy []Order
 	Limit   int
 	Offset  int
@@ -54,6 +55,10 @@ func (c *FindCondition) In(s string, args ...interface{}) {
 
 func (c *FindCondition) GroupBy(s ...string) {
 	c.Group = append(c.Group, s...)
+}
+
+func (c *FindCondition) Having(s ...string) {
+	c.Havings = append(c.Havings, s...)
 }
 
 func (c *FindCondition) OrderByAsc(s string) {

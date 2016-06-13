@@ -2,6 +2,7 @@ package xorm
 
 import (
 	"reflect"
+	"strings"
 
 	"github.com/evalphobia/wizard/errors"
 )
@@ -119,8 +120,11 @@ func (xpr *XormParallel) CreateFindSessions(cond FindCondition) []Session {
 		for _, in := range cond.WhereIn {
 			s.In(in.Statement, in.Args...)
 		}
-		for _, group := range cond.Group {
-			s.GroupBy(group)
+		if len(cond.Group) > 0 {
+			s.GroupBy(strings.Join(cond.Group, ", "))
+		}
+		if len(cond.Havings) > 0 {
+			s.Having(strings.Join(cond.Havings, " AND "))
 		}
 		for _, o := range cond.OrderBy {
 			if o.OrderByDesc {
