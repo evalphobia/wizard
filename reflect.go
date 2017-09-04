@@ -50,7 +50,7 @@ func getShardKeyFromStruct(p interface{}, tagName string) int64 {
 	values := toValue(p)
 	for i, max := 0, t.NumField(); i < max; i++ {
 		f := t.Field(i)
-		if f.PkgPath != "" {
+		if f.PkgPath != "" && !f.Anonymous {
 			continue
 		}
 
