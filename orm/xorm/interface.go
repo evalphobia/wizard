@@ -3,7 +3,6 @@ package xorm
 import (
 	"database/sql"
 	"io"
-	"time"
 
 	"github.com/go-xorm/core"
 	"github.com/go-xorm/xorm"
@@ -53,14 +52,15 @@ type ORM interface {
 	CloseAll(Identifier)
 }
 
-// Session is interface for xorm.Session
+// Session is interface for xorm.Session.
+// (xorm v0.6.3)
 type Session interface {
 	Init()
 	Close()
 	Sql(string, ...interface{}) *xorm.Session
-	Where(string, ...interface{}) *xorm.Session
-	And(string, ...interface{}) *xorm.Session
-	Or(string, ...interface{}) *xorm.Session
+	Where(interface{}, ...interface{}) *xorm.Session
+	And(interface{}, ...interface{}) *xorm.Session
+	Or(interface{}, ...interface{}) *xorm.Session
 
 	Id(interface{}) *xorm.Session
 	Table(interface{}) *xorm.Session
@@ -100,7 +100,7 @@ type Session interface {
 	Rows(interface{}) (*xorm.Rows, error)
 	Iterate(interface{}, xorm.IterFunc) error
 	Get(interface{}) (bool, error)
-	Count(interface{}) (int64, error)
+	Count(...interface{}) (int64, error)
 	Find(interface{}, ...interface{}) error
 
 	IsTableExist(interface{}) (bool, error)
@@ -141,11 +141,11 @@ type Engine interface {
 
 	Sql(string, ...interface{}) *xorm.Session
 	NoAutoTime() *xorm.Session
-	DumpAllToFile(string) error
-	DumpAll(io.Writer) error
+	DumpAllToFile(string, ...core.DbType) error
+	DumpAll(io.Writer, ...core.DbType) error
 
 	Cascade(...bool) *xorm.Session
-	Where(string, ...interface{}) *xorm.Session
+	Where(interface{}, ...interface{}) *xorm.Session
 	Id(interface{}) *xorm.Session
 
 	Before(func(interface{})) *xorm.Session
@@ -196,14 +196,11 @@ type Engine interface {
 	Find(interface{}, ...interface{}) error
 	Iterate(interface{}, xorm.IterFunc) error
 	Rows(interface{}) (*xorm.Rows, error)
-	Count(interface{}) (int64, error)
+	Count(...interface{}) (int64, error)
 
 	ImportFile(string) ([]sql.Result, error)
 	Import(io.Reader) ([]sql.Result, error)
 
-	TZTime(time.Time) time.Time
-	NowTime(string) interface{}
-	NowTime2(string) (interface{}, time.Time)
-	FormatTime(string, time.Time) interface{}
+	ShowSQL(...bool)
 	Unscoped() *xorm.Session
 }

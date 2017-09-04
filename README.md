@@ -3,7 +3,7 @@ Wizard
 [![Build Status](https://travis-ci.org/evalphobia/wizard.svg?branch=master)](https://travis-ci.org/evalphobia/wizard) [![codecov.io](https://codecov.io/github/evalphobia/wizard/coverage.svg?branch=master)](https://codecov.io/github/evalphobia/wizard?branch=master)
  [![GoDoc](https://godoc.org/github.com/evalphobia/wizard?status.svg)](https://godoc.org/github.com/evalphobia/wizard) [![Join the chat at https://gitter.im/evalphobia/wizard](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/evalphobia/wizard?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-Wizard is database/sql management library for multi instance and sharding in golang.  
+Wizard is database/sql management library for multi instance and sharding in golang.
 Inspired by [MixedGauge](https://github.com/taiki45/mixed_gauge)
 
 ## Supported orm list
@@ -144,3 +144,7 @@ func main() {
 - Struct field tag: `shard_key:"true"` is used as a shard-key
     - shard_key is divided by slot size and the mod value is used for shard mapping
     - string shard_key convert to int64 with CRC64 and divided by slot-size
+
+### Other info
+
+- Slide ["golang.tokyo #7 Wizard"](https://www.slideshare.net/TakumaMorikawa/golangtokyo-7-wizard-database-sharding-library-for-golang)

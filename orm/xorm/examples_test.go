@@ -17,7 +17,7 @@ type User struct {
 	Name string `xorm:"varchar(255) not null"`
 }
 
-func ExampleRegisterStandardDatabases() {
+func _ExampleRegisterStandardDatabases() {
 	engine1, _ = xorm.NewEngine("mysql", "root:@/example_user?charset=utf8")
 	engine2, _ = xorm.NewEngine("mysql", "root:@/example_user?charset=utf8")
 	engine3, _ = xorm.NewEngine("mysql", "root:@/example_foobar?charset=utf8")
@@ -33,7 +33,7 @@ func ExampleRegisterStandardDatabases() {
 	w.SetDefault(stndardCluster) // engine4 is master database used for all the other tables
 }
 
-func ExampleRegisterShardedDatabase() {
+func _ExampleRegisterShardedDatabase() {
 	engine1, _ = xorm.NewEngine("mysql", "root:@/example_user_a?charset=utf8")
 	engine2, _ = xorm.NewEngine("mysql", "root:@/example_user_a?charset=utf8")
 	engine3, _ = xorm.NewEngine("mysql", "root:@/example_user_b?charset=utf8")
@@ -50,7 +50,7 @@ func ExampleRegisterShardedDatabase() {
 	shardClusters.RegisterShard(501, 996, standardClusterB)
 }
 
-func ExampleGet() {
+func _ExampleGet() {
 	orm := New(w)
 
 	user := &User{ID: 99}
@@ -69,7 +69,7 @@ func ExampleGet() {
 	fmt.Printf("user found. id:%d, name:%s", user.ID, user.Name)
 }
 
-func ExampleInsert() {
+func _ExampleInsert() {
 	orm := New(w)
 
 	user := &User{ID: 99, Name: "Adam Smith"}
@@ -86,7 +86,7 @@ func ExampleInsert() {
 	}
 }
 
-func ExampleTransaction() {
+func _ExampleTransaction() {
 	var err error
 	orm := New(w)
 
@@ -109,7 +109,7 @@ func ExampleTransaction() {
 	orm.CommitAll(testID)
 }
 
-func ExampleTransactionAuto() {
+func _ExampleTransactionAuto() {
 	var err error
 	orm := New(w)
 

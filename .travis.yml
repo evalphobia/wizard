@@ -1,13 +1,14 @@
 sudo: false
 language: go
 go:
-  - 1.5
+  - 1.8
+  - 1.9
   - tip
 matrix:
   allow_failures:
     - go: tip
 before_install:
-  - if ! go get github.com/golang/tools/cmd/cover; then go get golang.org/x/tools/cmd/cover; fi
+  - go get golang.org/x/tools/cmd/cover
   - go get github.com/golang/lint/golint
   - go get github.com/modocache/gover
   - go get -d github.com/stretchr/testify/assert github.com/go-sql-driver/mysql github.com/mattn/go-sqlite3

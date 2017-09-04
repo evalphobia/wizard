@@ -90,7 +90,7 @@ func TestFind(t *testing.T) {
 
 	var foobars []*testFoobar
 	err = orm.Find(&testFoobar{}, func(s Session) error {
-		s.Id(1)
+		s.And("id = 1")
 		return s.Find(&foobars)
 	})
 	assert.Nil(err)
