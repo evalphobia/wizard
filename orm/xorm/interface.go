@@ -52,155 +52,59 @@ type ORM interface {
 	CloseAll(Identifier)
 }
 
-// Session is interface for xorm.Session.
-// (xorm v0.6.3)
+// Session is interface for xorm.Session
 type Session interface {
-	Init()
-	Close()
-	Sql(string, ...interface{}) *xorm.Session
-	Where(interface{}, ...interface{}) *xorm.Session
+	xorm.Interface
+
 	And(interface{}, ...interface{}) *xorm.Session
-	Or(interface{}, ...interface{}) *xorm.Session
-
-	Id(interface{}) *xorm.Session
-	Table(interface{}) *xorm.Session
-	In(string, ...interface{}) *xorm.Session
-	Select(string) *xorm.Session
-	Cols(...string) *xorm.Session
-	MustCols(...string) *xorm.Session
-	AllCols() *xorm.Session
-	Distinct(...string) *xorm.Session
-	ForUpdate() *xorm.Session
-	Omit(...string) *xorm.Session
-	Nullable(...string) *xorm.Session
-	NoAutoTime() *xorm.Session
-	Incr(string, ...interface{}) *xorm.Session
-	Decr(string, ...interface{}) *xorm.Session
-	SetExpr(string, string) *xorm.Session
-
-	Limit(int, ...int) *xorm.Session
-	OrderBy(string) *xorm.Session
-	Desc(...string) *xorm.Session
-	Asc(...string) *xorm.Session
-	Join(string, interface{}, string, ...interface{}) *xorm.Session
-	GroupBy(string) *xorm.Session
-	Having(string) *xorm.Session
-
 	Begin() error
-	Rollback() error
+	Close()
 	Commit() error
-	Exec(string, ...interface{}) (sql.Result, error)
-
 	CreateTable(interface{}) error
-	CreateIndexes(interface{}) error
-	CreateUniques(interface{}) error
-	DropIndexes(interface{}) error
 	DropTable(interface{}) error
-
-	Rows(interface{}) (*xorm.Rows, error)
-	Iterate(interface{}, xorm.IterFunc) error
-	Get(interface{}) (bool, error)
-	Count(...interface{}) (int64, error)
-	Find(interface{}, ...interface{}) error
-
-	IsTableExist(interface{}) (bool, error)
-	IsTableEmpty(interface{}) (bool, error)
-
-	Query(string, ...interface{}) ([]map[string][]byte, error)
-	Insert(...interface{}) (int64, error)
+	ForUpdate() *xorm.Session
+	Having(string) *xorm.Session
+	Id(interface{}) *xorm.Session
+	Init()
 	InsertMulti(interface{}) (int64, error)
-	InsertOne(interface{}) (int64, error)
-	Update(interface{}, ...interface{}) (int64, error)
-	Delete(interface{}) (int64, error)
-
 	LastSQL() (string, []interface{})
+	NoAutoTime() *xorm.Session
+	Nullable(...string) *xorm.Session
+	Or(interface{}, ...interface{}) *xorm.Session
+	Rollback() error
+	Select(string) *xorm.Session
+	Sql(string, ...interface{}) *xorm.Session
 	Sync2(...interface{}) error
 }
 
 // Engine is interface for xorm.Engine
 type Engine interface {
-	SetDisableGlobalCache(bool)
-	DriverName() string
-	DataSourceName() string
-	SetMapper(core.IMapper)
-	SetTableMapper(core.IMapper)
-	SetColumnMapper(core.IMapper)
-	SupportInsertMany() bool
-	QuoteStr() string
-	Quote(string) string
+	xorm.EngineInterface
+
+	After(func(interface{})) *xorm.Session
 	AutoIncrStr() string
-	SetMaxOpenConns(int)
-	SetMaxIdleConns(int)
+	Cascade(...bool) *xorm.Session
+	ClearCacheBean(interface{}, string) error
+	Close() error
+	DataSourceName() string
+	DriverName() string
+	DumpAll(io.Writer, ...core.DbType) error
+	GobRegister(interface{}) *xorm.Engine
+	Having(string) *xorm.Session
+	Id(interface{}) *xorm.Session
+	Import(io.Reader) ([]sql.Result, error)
+	ImportFile(string) ([]sql.Result, error)
 	NoCache() *xorm.Session
 	NoCascade() *xorm.Session
-	SetLogger(core.ILogger)
-
-	NewSession() *xorm.Session
-	Close() error
-	Ping() error
-
-	Sql(string, ...interface{}) *xorm.Session
-	NoAutoTime() *xorm.Session
-	DumpAllToFile(string, ...core.DbType) error
-	DumpAll(io.Writer, ...core.DbType) error
-
-	Cascade(...bool) *xorm.Session
-	Where(interface{}, ...interface{}) *xorm.Session
-	Id(interface{}) *xorm.Session
-
-	Before(func(interface{})) *xorm.Session
-	After(func(interface{})) *xorm.Session
-	Charset(string) *xorm.Session
-	StoreEngine(string) *xorm.Session
-
-	Distinct(...string) *xorm.Session
-	Select(string) *xorm.Session
-	Cols(...string) *xorm.Session
-	AllCols() *xorm.Session
-	MustCols(...string) *xorm.Session
-	UseBool(...string) *xorm.Session
-	Omit(...string) *xorm.Session
 	Nullable(...string) *xorm.Session
-	In(string, ...interface{}) *xorm.Session
-	Incr(string, ...interface{}) *xorm.Session
-	Decr(string, ...interface{}) *xorm.Session
-
-	Table(interface{}) *xorm.Session
-	Limit(int, ...int) *xorm.Session
-	Desc(...string) *xorm.Session
-	Asc(...string) *xorm.Session
-	OrderBy(string) *xorm.Session
-	Join(string, interface{}, string, ...interface{}) *xorm.Session
-	GroupBy(string) *xorm.Session
-	Having(string) *xorm.Session
-
-	GobRegister(interface{}) *xorm.Engine
-
-	IsTableEmpty(interface{}) (bool, error)
-	IsTableExist(interface{}) (bool, error)
-	CreateIndexes(interface{}) error
-	CreateUniques(interface{}) error
-	ClearCacheBean(interface{}, string) error
-	ClearCache(...interface{}) error
-	Sync(...interface{}) error
-	Sync2(...interface{}) error
-	CreateTables(...interface{}) error
-	DropTables(...interface{}) error
-
-	Exec(string, ...interface{}) (sql.Result, error)
-	Query(string, ...interface{}) ([]map[string][]byte, error)
-	Insert(...interface{}) (int64, error)
-	Update(interface{}, ...interface{}) (int64, error)
-	Delete(interface{}) (int64, error)
-	Get(interface{}) (bool, error)
-	Find(interface{}, ...interface{}) error
-	Iterate(interface{}, xorm.IterFunc) error
-	Rows(interface{}) (*xorm.Rows, error)
-	Count(...interface{}) (int64, error)
-
-	ImportFile(string) ([]sql.Result, error)
-	Import(io.Reader) ([]sql.Result, error)
-
-	ShowSQL(...bool)
-	Unscoped() *xorm.Session
+	QuoteStr() string
+	Select(string) *xorm.Session
+	SetColumnMapper(core.IMapper)
+	SetDisableGlobalCache(bool)
+	SetTableMapper(core.IMapper)
+	Sql(string, ...interface{}) *xorm.Session
+	SupportInsertMany() bool
 }
+
+var _ Session = &xorm.Session{}
+var _ Engine = &xorm.Engine{}
